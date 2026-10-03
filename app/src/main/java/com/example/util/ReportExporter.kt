@@ -2,11 +2,15 @@ package com.example.util
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
+import com.example.R
 import java.io.File
 import java.io.FileOutputStream
 
@@ -89,7 +93,17 @@ object ReportExporter {
                 color = Color.parseColor("#0B172A")
                 style = Paint.Style.FILL
             }
-            canvas.drawRect(0f, 0f, 595f, 92f, headerPaint)
+            canvas.drawRect(0f, 0f, 595f, 96f, headerPaint)
+
+            // Desenha o Brasão Oficial da Casa do Ogum no cabeçalho do PDF
+            try {
+                val logoBitmap: Bitmap? = BitmapFactory.decodeResource(context.resources, R.drawable.img_logo_oficial)
+                if (logoBitmap != null) {
+                    val destRect = Rect(24, 14, 88, 78)
+                    canvas.drawBitmap(logoBitmap, null, destRect, null)
+                }
+            } catch (_: Exception) {
+            }
 
             val goldPaint = Paint().apply {
                 color = Color.parseColor("#D4AF37")
@@ -114,9 +128,9 @@ object ReportExporter {
                 isAntiAlias = true
             }
 
-            canvas.drawText("CASA DO OGUM - RJ", 32f, 38f, goldPaint)
-            canvas.drawText(reportTitle, 32f, 60f, whitePaint)
-            canvas.drawText("$subtitle | Emitido em ${DateAndCalendarUtils.currentDateTimeFormatted()}", 32f, 78f, whitePaint)
+            canvas.drawText("CASA DO OGUM - RJ • DESDE 2016", 100f, 38f, goldPaint)
+            canvas.drawText(reportTitle, 100f, 60f, whitePaint)
+            canvas.drawText("$subtitle | Emitido em ${DateAndCalendarUtils.currentDateTimeFormatted()}", 100f, 78f, whitePaint)
 
             var y = 120f
             // Summary metrics box

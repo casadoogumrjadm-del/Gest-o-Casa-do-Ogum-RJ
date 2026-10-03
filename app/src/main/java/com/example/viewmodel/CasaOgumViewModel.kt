@@ -9,6 +9,7 @@ import com.example.data.CasaOgumRepository
 import com.example.data.ComunicadoEntity
 import com.example.data.ConfiguracaoEntity
 import com.example.data.EventoEntity
+import com.example.data.FirestoreStatusInfo
 import com.example.data.HistoricoAdminEntity
 import com.example.data.OdunKodunItem
 import com.example.data.PagamentoEntity
@@ -67,6 +68,16 @@ class CasaOgumViewModel(
 
     val configuracoes: StateFlow<List<ConfiguracaoEntity>> = repository.allConfiguracoes
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val firestoreStatus: StateFlow<FirestoreStatusInfo> = repository.firestoreStatus
+
+    fun sincronizarComFirestore() {
+        val msg = repository.sincronizarMembrosEMensalidadesComFirestore(
+            pessoas = pessoas.value,
+            pagamentos = pagamentos.value
+        )
+        _mensagemFeedback.value = msg
+    }
 
     private val _usuarioLogado = MutableStateFlow<PessoaEntity?>(null)
     val usuarioLogado: StateFlow<PessoaEntity?> = _usuarioLogado.asStateFlow()

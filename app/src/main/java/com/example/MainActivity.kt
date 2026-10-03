@@ -32,6 +32,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DashboardCustomize
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
@@ -76,6 +78,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.CasaOgumDatabase
 import com.example.data.CasaOgumRepository
+import com.example.data.FirestoreConnectionState
+import com.example.data.FirestoreSyncService
 import com.example.ui.screens.CalendarsAndEventsScreen
 import com.example.ui.screens.FinanceScreen
 import com.example.ui.screens.FirstAccessPasswordChangeScreen
@@ -104,7 +108,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val database = CasaOgumDatabase.getInstance(applicationContext)
-        val repository = CasaOgumRepository(database.dao())
+        val firestoreService = FirestoreSyncService(applicationContext, database.dao())
+        val repository = CasaOgumRepository(database.dao(), firestoreService)
 
         setContent {
             MyApplicationTheme {
@@ -139,6 +144,7 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
     val mesFinanceiro by viewModel.mesFinanceiroSelecionado.collectAsStateWithLifecycle()
     val anoFinanceiro by viewModel.anoFinanceiroSelecionado.collectAsStateWithLifecycle()
     val mesCalendario by viewModel.mesCalendarioSelecionado.collectAsStateWithLifecycle()
+    val firestoreStatus by viewModel.firestoreStatus.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -265,6 +271,20 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
                     },
                     actions = {
                         IconButton(
+                            onClick = { viewModel.sincronizarComFirestore() },
+                            modifier = Modifier.testTag("firestore_sync_button")
+                        ) {
+                            Icon(
+                                imageVector = if (firestoreStatus.state == FirestoreConnectionState.CONNECTED) {
+                                    Icons.Default.CloudDone
+                                } else {
+                                    Icons.Default.CloudSync
+                                },
+                                contentDescription = "Sincronizar Membros e Mensalidades com Firebase Firestore",
+                                tint = GoldPrimary
+                            )
+                        }
+                        IconButton(
                             onClick = { viewModel.realizarLogout() },
                             modifier = Modifier.testTag("logout_button")
                         ) {
@@ -314,6 +334,17 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
                     NavigationRail(
                         containerColor = NavyDeep,
                         contentColor = GoldPrimary,
+                        header = {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.img_logo_oficial),
+                                contentDescription = "Brasão Oficial Casa do Ogum - RJ",
+                                modifier = Modifier
+                                    .size(54.dp)
+                                    .clip(CircleShape)
+                                    .border(1.5.dp, GoldPrimary, CircleShape)
+                            )
+                        },
                         modifier = Modifier.fillMaxHeight()
                     ) {
                         Spacer(modifier = Modifier.height(12.dp))

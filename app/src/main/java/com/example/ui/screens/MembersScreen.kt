@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -52,9 +54,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.R
 import com.example.data.PessoaEntity
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GoldMuted
@@ -162,18 +168,33 @@ fun MembersScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Cadastro de Pessoas e Acessos",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = GoldPrimary,
-                        fontWeight = FontWeight.Bold
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.img_logo_oficial),
+                        contentDescription = "Brasão Oficial Casa do Ogum",
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .border(1.5.dp, GoldPrimary, CircleShape),
+                        contentScale = ContentScale.Crop
                     )
-                    Text(
-                        text = "${pessoas.count { it.ativo }} ativos • ${pessoas.count { !it.ativo }} inativos • Total: ${pessoas.size}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SilverSubtext
-                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Cadastro de Pessoas e Acessos",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = GoldPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${pessoas.count { it.ativo }} ativos • ${pessoas.count { !it.ativo }} inativos • Total: ${pessoas.size}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SilverSubtext
+                        )
+                    }
                 }
                 Button(
                     onClick = {
