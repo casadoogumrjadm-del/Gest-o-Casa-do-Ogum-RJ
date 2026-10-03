@@ -1,0 +1,6 @@
+{
+  "name": "Casa do Ogum - RJ",
+  "description": "Sistema de Gestão Institucional da Casa do Ogum - RJ: Membros, Mensalidades, Eventos, Odún Kodún, Aniversariantes, Comunicados, Tarefas e Auditoria.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Casa do Ogum - RJ</string>
+    <string name="subtitle_system">Sistema de Gestão da Casa</string>
+    <string name="login_title">Acesso ao Sistema</string>
+    <string name="login_cpf_label">CPF (apenas números ou formatado)</string>
+    <string name="login_password_label">Senha</string>
+    <string name="login_button">Entrar na Casa</string>
+    <string name="first_access_title">Primeiro Acesso — Criar Nova Senha</string>
+    <string name="first_access_subtitle">Por segurança, defina uma senha pessoal definitiva. Sua senha temporária deixará de valer.</string>
+    <string name="new_password_label">Nova Senha (mín. 6 caracteres)</string>
+    <string name="confirm_password_label">Confirmar Nova Senha</string>
+    <string name="save_password_button">Confirmar e Acessar</string>
+    <string name="nav_home">Início</string>
+    <string name="nav_members">Membros</string>
+    <string name="nav_finance">Financeiro</string>
+    <string name="nav_calendars">Calendários</string>
+    <string name="nav_more">Gestão</string>
+    <string name="orunko_privacy_rule">Regra do Orunkó ativa: nomes civis preservados em sigilo nos calendários coletivos.</string>
+    <string name="export_pdf">Exportar PDF</string>
+    <string name="export_excel">Exportar Excel (CSV)</string>
+    <string name="logout_desc">Sair da conta</string>
+</resources>
