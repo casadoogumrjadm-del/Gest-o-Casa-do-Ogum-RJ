@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.DashboardCustomize
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -80,6 +81,7 @@ import com.example.data.CasaOgumDatabase
 import com.example.data.CasaOgumRepository
 import com.example.data.FirestoreConnectionState
 import com.example.data.FirestoreSyncService
+import com.example.ui.components.MemberAvatar
 import com.example.ui.screens.CalendarsAndEventsScreen
 import com.example.ui.screens.FinanceScreen
 import com.example.ui.screens.FirstAccessPasswordChangeScreen
@@ -87,6 +89,7 @@ import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.LoginScreen
 import com.example.ui.screens.ManagementAndReportsScreen
 import com.example.ui.screens.MembersScreen
+import com.example.ui.screens.WebBrowserScreen
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GoldMuted
 import com.example.ui.theme.GoldPrimary
@@ -145,6 +148,7 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
     val anoFinanceiro by viewModel.anoFinanceiroSelecionado.collectAsStateWithLifecycle()
     val mesCalendario by viewModel.mesCalendarioSelecionado.collectAsStateWithLifecycle()
     val firestoreStatus by viewModel.firestoreStatus.collectAsStateWithLifecycle()
+    val modoNavegadorWeb by viewModel.modoNavegadorWebAtivo.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -153,6 +157,73 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
             snackbarHostState.showSnackbar(msg)
             viewModel.limparFeedback()
         }
+    }
+
+    // 0. Modo Navegador Web (Chrome, Safari, Edge, Firefox, Internet Explorer)
+    if (modoNavegadorWeb) {
+        Scaffold(
+            contentWindowInsets = WindowInsets.safeDrawing,
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { innerPadding ->
+            WebBrowserScreen(
+                pessoas = pessoas,
+                pagamentos = pagamentos,
+                eventos = eventos,
+                comunicados = comunicados,
+                tarefas = tarefas,
+                historico = historico,
+                onExportWebFile = { viewModel.exportarVersaoWebNavegador(context) },
+                onSwitchToNativeApp = { viewModel.definirModoNavegadorWeb(false) },
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
+        relatorioExportado?.let { res ->
+            AlertDialog(
+                onDismissRequest = { viewModel.fecharModalRelatorio() },
+                containerColor = NavyCard,
+                title = {
+                    Text(
+                        text = "Sistema Web (.HTML) Exportado",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = GoldPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(text = res.message, style = MaterialTheme.typography.bodySmall, color = GoldLight)
+                        Surface(
+                            color = NavySurface,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, GoldMuted.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                        ) {
+                            Text(
+                                text = res.previewContent,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                color = IvoryText,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { viewModel.fecharModalRelatorio() },
+                        colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary, contentColor = NavyDeep)
+                    ) {
+                        Text("Entendido", fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
+        return
     }
 
     // 1. Fluxo de Login (CPF + Senha)
@@ -165,6 +236,8 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
             LoginScreen(
                 erroLogin = erroLogin,
                 onLogin = { cpf, senha -> viewModel.realizarLogin(cpf, senha) },
+                onOpenWebBrowser = { viewModel.definirModoNavegadorWeb(true) },
+                onExportWebHtml = { viewModel.exportarVersaoWebNavegador(context) },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -270,6 +343,23 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
                         }
                     },
                     actions = {
+                        MemberAvatar(
+                            fotoBase64 = user.fotoBase64,
+                            nameOrOrunko = user.orunko,
+                            size = 34.dp,
+                            onClick = { viewModel.openSubScreen(SubScreen.MEUS_DADOS) }
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        IconButton(
+                            onClick = { viewModel.definirModoNavegadorWeb(true) },
+                            modifier = Modifier.testTag("open_web_browser_mode_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = "Abrir Versão Navegador Web (Chrome, Safari, Edge, IE)",
+                                tint = GoldPrimary
+                            )
+                        }
                         IconButton(
                             onClick = { viewModel.sincronizarComFirestore() },
                             modifier = Modifier.testTag("firestore_sync_button")
@@ -374,8 +464,12 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
                             MembersScreen(
                                 usuarioLogado = user,
                                 pessoas = pessoas,
+                                firestoreStatus = firestoreStatus,
                                 somenteMeusDados = true,
+                                onCarregarMembrosFirestore = viewModel::carregarMembrosDoFirestore,
+                                onSincronizarFirestore = viewModel::sincronizarComFirestore,
                                 onSalvarPessoa = viewModel::salvarPessoa,
+                                onAtualizarFotoMembro = viewModel::atualizarFotoMembro,
                                 onAlternarAtivo = viewModel::alternarAtivoInativo,
                                 onResetarSenhaTemporaria = viewModel::resetarSenhaTemporaria
                             )
@@ -469,6 +563,7 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
                                 AppDestination.HOME -> {
                                     HomeScreen(
                                         usuario = user,
+                                        pessoas = pessoas,
                                         pagamentos = pagamentos,
                                         resumoFinanceiroOutubro = resumoOutubro,
                                         eventos = eventos,
@@ -478,15 +573,20 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
                                         tarefas = tarefas,
                                         onNavigateToDestination = viewModel::navigateTo,
                                         onOpenSubScreen = viewModel::openSubScreen,
-                                        onSelectCalendarMonth = viewModel::selecionarMesCalendario
+                                        onSelectCalendarMonth = viewModel::selecionarMesCalendario,
+                                        onAtualizarFotoMembro = viewModel::atualizarFotoMembro
                                     )
                                 }
                                 AppDestination.MEMBROS -> {
                                     MembersScreen(
                                         usuarioLogado = user,
                                         pessoas = pessoas,
+                                        firestoreStatus = firestoreStatus,
                                         somenteMeusDados = false,
+                                        onCarregarMembrosFirestore = viewModel::carregarMembrosDoFirestore,
+                                        onSincronizarFirestore = viewModel::sincronizarComFirestore,
                                         onSalvarPessoa = viewModel::salvarPessoa,
+                                        onAtualizarFotoMembro = viewModel::atualizarFotoMembro,
                                         onAlternarAtivo = viewModel::alternarAtivoInativo,
                                         onResetarSenhaTemporaria = viewModel::resetarSenhaTemporaria
                                     )
@@ -509,6 +609,7 @@ fun CasaDoOgumApp(viewModel: CasaOgumViewModel) {
                                 AppDestination.CALENDARIOS -> {
                                     CalendarsAndEventsScreen(
                                         usuarioLogado = user,
+                                        pessoas = pessoas,
                                         eventos = eventos,
                                         aniversariantes = aniversariantes,
                                         odunKodunList = odunKodunList,

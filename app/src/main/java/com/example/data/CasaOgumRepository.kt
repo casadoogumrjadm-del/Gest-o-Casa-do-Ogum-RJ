@@ -287,4 +287,8 @@ class CasaOgumRepository(
         return firestoreService?.sincronizarTudoParaFirestore(pessoas, pagamentos, now)
             ?: "Banco de dados sincronizado localmente."
     }
+
+    fun carregarMembrosDoFirestore() {
+        firestoreService?.carregarMembrosDoFirestore()
+    }
 }

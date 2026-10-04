@@ -16,16 +16,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Announcement
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PersonPin
@@ -40,6 +44,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +58,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.R
 import com.example.data.AniversarianteItem
@@ -60,6 +69,8 @@ import com.example.data.PagamentoEntity
 import com.example.data.PainelFinanceiroResumo
 import com.example.data.PessoaEntity
 import com.example.data.TarefaEntity
+import com.example.ui.components.MemberAvatar
+import com.example.ui.components.MemberPhotoPickerDialog
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GoldMuted
 import com.example.ui.theme.GoldPrimary
@@ -79,6 +90,7 @@ import com.example.viewmodel.SubScreen
 @Composable
 fun HomeScreen(
     usuario: PessoaEntity,
+    pessoas: List<PessoaEntity> = emptyList(),
     pagamentos: List<PagamentoEntity>,
     resumoFinanceiroOutubro: PainelFinanceiroResumo,
     eventos: List<EventoEntity>,
@@ -89,9 +101,12 @@ fun HomeScreen(
     onNavigateToDestination: (AppDestination) -> Unit,
     onOpenSubScreen: (SubScreen) -> Unit,
     onSelectCalendarMonth: (Int) -> Unit,
+    onAtualizarFotoMembro: (PessoaEntity, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val isAdmin = usuario.perfilAcesso == "ADMIN"
+    var pessoaParaFotoModal by remember { mutableStateOf<PessoaEntity?>(null) }
+
     val meuPagamentoAtual = pagamentos.firstOrNull {
         it.pessoaId == usuario.id && it.competenciaMes == 10 && it.ano == 2026
     } ?: pagamentos.firstOrNull { it.pessoaId == usuario.id }
@@ -102,6 +117,7 @@ fun HomeScreen(
     val comunicadosAtivos = comunicados.filter { it.ativo }
     val comunicadosDestaque = comunicadosAtivos.filter { it.destaque }
     val minhasTarefas = if (isAdmin) tarefas else tarefas.filter { it.responsavelPessoaId == usuario.id }
+    val membrosAtivos = remember(pessoas) { pessoas.filter { it.ativo } }
 
     LazyColumn(
         modifier = modifier
@@ -111,7 +127,7 @@ fun HomeScreen(
     ) {
         item {
             Spacer(modifier = Modifier.height(4.dp))
-            // Banner Institucional de Boas-Vindas (sempre saudando pelo Orunkó!)
+            // Banner Institucional de Boas-Vindas com a Foto de Perfil do Membro e Brasão Oficial
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,18 +141,18 @@ fun HomeScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(145.dp),
+                            .height(155.dp),
                         contentScale = ContentScale.Crop
                     )
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(145.dp)
+                            .height(155.dp)
                             .background(
                                 Brush.horizontalGradient(
                                     colors = listOf(
-                                        NavyDeep.copy(alpha = 0.92f),
-                                        NavyDeep.copy(alpha = 0.72f)
+                                        NavyDeep.copy(alpha = 0.94f),
+                                        NavyDeep.copy(alpha = 0.74f)
                                     )
                                 )
                             )
@@ -144,17 +160,16 @@ fun HomeScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(18.dp),
+                            .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_logo_oficial),
-                            contentDescription = "Logotipo Oficial Casa do Ogum - RJ",
-                            modifier = Modifier
-                                .size(74.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, GoldPrimary, CircleShape),
-                            contentScale = ContentScale.Crop
+                        // Foto de Perfil do Membro Logado na Tela Principal
+                        MemberAvatar(
+                            fotoBase64 = usuario.fotoBase64,
+                            nameOrOrunko = usuario.orunko,
+                            size = 76.dp,
+                            showEditBadge = true,
+                            onClick = { pessoaParaFotoModal = usuario }
                         )
                         Spacer(modifier = Modifier.width(14.dp))
                         Column(
@@ -176,7 +191,7 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = "Olá, ${usuario.orunko}!",
-                                style = MaterialTheme.typography.headlineMedium,
+                                style = MaterialTheme.typography.headlineSmall,
                                 color = GoldPrimary,
                                 fontWeight = FontWeight.Bold
                             )
@@ -185,7 +200,36 @@ fun HomeScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = IvoryText
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { pessoaParaFotoModal = usuario }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = "Foto de Perfil",
+                                    tint = GoldPrimary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = if (usuario.fotoBase64.isBlank()) "Cadastrar foto no perfil" else "Trocar foto do perfil",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = GoldLight,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.img_logo_oficial),
+                            contentDescription = "Brasão Oficial Casa do Ogum - RJ",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .border(1.5.dp, GoldPrimary, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
             }
@@ -244,7 +288,7 @@ fun HomeScreen(
             }
         }
 
-        // Atalhos Rápidos de Sub-módulos (Meus Dados, Comunicados, Tarefas, Relatórios, Auditoria)
+        // Atalhos Rápidos de Sub-módulos (Meus Dados, Comunicados, Tarefas, Relatórios)
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -283,6 +327,73 @@ fun HomeScreen(
             }
         }
 
+        // SEÇÃO NA TELA PRINCIPAL: 👥 MEMBROS DA CASA (COM FOTOS DE PERFIL)
+        if (membrosAtivos.isNotEmpty()) {
+            item {
+                DashboardSectionCard(
+                    icon = Icons.Default.Groups,
+                    title = "👥 Membros da Casa",
+                    subtitle = if (isAdmin) "Toque na foto de um membro para cadastrar/alterar" else "Quadro de Irmãos da Casa (Orunkó)",
+                    actionLabel = if (isAdmin) "Gerenciar" else "Ver Todos",
+                    onClick = { onNavigateToDestination(AppDestination.MEMBROS) },
+                    tag = "home_card_membros_fotos"
+                ) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(membrosAtivos, key = { it.id }) { m ->
+                            Surface(
+                                color = NavyElevated,
+                                shape = RoundedCornerShape(14.dp),
+                                modifier = Modifier
+                                    .width(114.dp)
+                                    .border(1.dp, GoldMuted.copy(alpha = 0.45f), RoundedCornerShape(14.dp))
+                                    .clickable {
+                                        if (isAdmin) {
+                                            pessoaParaFotoModal = m
+                                        } else {
+                                            onNavigateToDestination(AppDestination.MEMBROS)
+                                        }
+                                    }
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(10.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    MemberAvatar(
+                                        fotoBase64 = m.fotoBase64,
+                                        nameOrOrunko = m.orunko.ifBlank { m.nome },
+                                        size = 56.dp,
+                                        showEditBadge = isAdmin,
+                                        onClick = if (isAdmin) {
+                                            { pessoaParaFotoModal = m }
+                                        } else null
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = m.orunko,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = GoldPrimary,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = m.cargo,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = SilverSubtext,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // CARD 1: 💰 MINHA MENSALIDADE + RESUMO FINANCEIRO (SE ADMIN)
         item {
             DashboardSectionCard(
@@ -298,26 +409,40 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            text = if (meuPagamentoAtual != null) {
-                                DateAndCalendarUtils.formatCurrency(meuPagamentoAtual.valor)
-                            } else {
-                                "R$ 150,00"
-                            },
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = GoldLight,
-                            fontWeight = FontWeight.Bold
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        MemberAvatar(
+                            fotoBase64 = usuario.fotoBase64,
+                            nameOrOrunko = usuario.orunko,
+                            size = 44.dp
                         )
-                        Text(
-                            text = if (meuPagamentoAtual?.dataPagamento?.isNotBlank() == true) {
-                                "Pago em ${meuPagamentoAtual.dataPagamento}"
-                            } else {
-                                "Vencimento dia 10/10/2026"
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SilverSubtext
-                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = usuario.orunko,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = GoldPrimary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (meuPagamentoAtual != null) {
+                                    DateAndCalendarUtils.formatCurrency(meuPagamentoAtual.valor)
+                                } else {
+                                    "R$ 150,00"
+                                },
+                                style = MaterialTheme.typography.titleLarge,
+                                color = GoldLight,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (meuPagamentoAtual?.dataPagamento?.isNotBlank() == true) {
+                                    "Pago em ${meuPagamentoAtual.dataPagamento}"
+                                } else {
+                                    "Vencimento dia 10/10/2026"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = SilverSubtext
+                            )
+                        }
                     }
                     PaymentStatusBadge(status = meuPagamentoAtual?.status ?: "PENDENTE")
                 }
@@ -370,12 +495,38 @@ fun HomeScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = IvoryText
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Responsáveis (Orunkó): ${proximoEvento.responsaveis}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SilverSubtext
-                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    val responsaveisMatches = pessoas.filter { p ->
+                        proximoEvento.responsaveis.contains(p.orunko, ignoreCase = true)
+                    }
+                    if (responsaveisMatches.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            responsaveisMatches.take(3).forEach { resp ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    MemberAvatar(
+                                        fotoBase64 = resp.fotoBase64,
+                                        nameOrOrunko = resp.orunko,
+                                        size = 28.dp
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = resp.orunko,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = GoldLight
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "Responsáveis (Orunkó): ${proximoEvento.responsaveis}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SilverSubtext
+                        )
+                    }
                 } else {
                     Text(
                         text = "Nenhum evento agendado no momento.",
@@ -386,12 +537,12 @@ fun HomeScreen(
             }
         }
 
-        // CARD 3: 🎂 PRÓXIMOS ANIVERSARIANTES (REGRA DO ORUNKÓ)
+        // CARD 3: 🎂 PRÓXIMOS ANIVERSARIANTES (REGRA DO ORUNKÓ + FOTO DE PERFIL)
         item {
             DashboardSectionCard(
                 icon = Icons.Default.Cake,
                 title = "🎂 Próximos Aniversariantes",
-                subtitle = "Outubro — Exibição exclusiva por Orunkó",
+                subtitle = "Outubro — Exibição exclusiva por Orunkó e Foto",
                 actionLabel = "Ver Calendário",
                 onClick = {
                     onSelectCalendarMonth(10)
@@ -410,6 +561,12 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            MemberAvatar(
+                                fotoBase64 = item.fotoBase64,
+                                nameOrOrunko = item.orunko,
+                                size = 42.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Surface(
                                 color = GoldPrimary.copy(alpha = 0.18f),
                                 shape = RoundedCornerShape(8.dp)
@@ -449,7 +606,7 @@ fun HomeScreen(
             }
         }
 
-        // CARD 4: 🕯️ PRÓXIMOS ODÚN KODÚN (REGRA DO ORUNKÓ)
+        // CARD 4: 🕯️ PRÓXIMOS ODÚN KODÚN (REGRA DO ORUNKÓ + FOTO DE PERFIL)
         item {
             DashboardSectionCard(
                 icon = Icons.Default.LocalFireDepartment,
@@ -471,6 +628,12 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            MemberAvatar(
+                                fotoBase64 = odun.fotoBase64,
+                                nameOrOrunko = odun.orunko,
+                                size = 42.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Surface(
                                 color = NavyElevated,
                                 shape = RoundedCornerShape(8.dp),
@@ -546,7 +709,7 @@ fun HomeScreen(
             }
         }
 
-        // CARD 6: ✅ MINHAS TAREFAS E RESPONSABILIDADES
+        // CARD 6: ✅ MINHAS TAREFAS E RESPONSABILIDADES (COM FOTO DO MEMBRO RESPONSÁVEL)
         item {
             DashboardSectionCard(
                 icon = Icons.Default.AssignmentTurnedIn,
@@ -564,25 +727,39 @@ fun HomeScreen(
                     )
                 } else {
                     minhasTarefas.take(3).forEach { tar ->
+                        val respMembro = pessoas.firstOrNull {
+                            it.id == tar.responsavelPessoaId || it.orunko.equals(tar.responsavelOrunko, ignoreCase = true)
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = 5.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = tar.descricao,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = IvoryText,
-                                    fontWeight = FontWeight.Medium
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                MemberAvatar(
+                                    fotoBase64 = respMembro?.fotoBase64 ?: "",
+                                    nameOrOrunko = tar.responsavelOrunko,
+                                    size = 38.dp
                                 )
-                                Text(
-                                    text = "Resp: ${tar.responsavelOrunko} • Prazo: ${tar.prazo} • Prioridade: ${tar.prioridade}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = SilverSubtext
-                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = tar.descricao,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = IvoryText,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = "Resp: ${tar.responsavelOrunko} • Prazo: ${tar.prazo} • Prioridade: ${tar.prioridade}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = SilverSubtext
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             TaskStatusChip(status = tar.status)
@@ -603,7 +780,7 @@ fun HomeScreen(
                     tag = "home_card_historico"
                 ) {
                     Text(
-                        text = "Todas as alterações de cadastros, lançamentos de mensalidades e senhas temporárias são auditadas automaticamente.",
+                        text = "Todas as alterações de cadastros, fotos de perfil, lançamentos de mensalidades e senhas temporárias são auditadas automaticamente.",
                         style = MaterialTheme.typography.bodySmall,
                         color = SilverSubtext
                     )
@@ -614,6 +791,19 @@ fun HomeScreen(
         item {
             Spacer(modifier = Modifier.height(20.dp))
         }
+    }
+
+    pessoaParaFotoModal?.let { alvo ->
+        MemberPhotoPickerDialog(
+            memberNameOrOrunko = alvo.orunko.ifBlank { alvo.nome },
+            memberOrixaOrCargo = alvo.orixa.ifBlank { alvo.cargo },
+            currentFotoBase64 = alvo.fotoBase64,
+            onDismiss = { pessoaParaFotoModal = null },
+            onPhotoSelected = { novaFoto ->
+                onAtualizarFotoMembro(alvo, novaFoto)
+                pessoaParaFotoModal = null
+            }
+        )
     }
 }
 

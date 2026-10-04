@@ -77,6 +77,8 @@ import com.example.util.SecurityUtils
 fun LoginScreen(
     erroLogin: String?,
     onLogin: (String, String) -> Unit,
+    onOpenWebBrowser: () -> Unit = {},
+    onExportWebHtml: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var cpf by rememberSaveable { mutableStateOf("") }
@@ -342,6 +344,52 @@ fun LoginScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = SilverSubtext
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Surface(
+                color = NavyCard,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, GoldPrimary.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "🌐 Versão para Navegador (Chrome • Safari • Edge • IE)",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = GoldPrimary,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = onOpenWebBrowser,
+                            colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary, contentColor = NavyDeep),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("open_web_mode_login_button")
+                        ) {
+                            Text("Abrir Modo Web", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
+                        OutlinedButton(
+                            onClick = onExportWebHtml,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("export_web_html_login_button")
+                        ) {
+                            Text("Baixar .HTML", style = MaterialTheme.typography.labelSmall, color = GoldLight)
+                        }
+                    }
                 }
             }
         }

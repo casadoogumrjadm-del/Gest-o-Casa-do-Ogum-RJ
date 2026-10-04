@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#0B172A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Casa do Ogum - RJ" />
+  <title>CASA DO OGUM - RJ — Sistema de Gestão da Casa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy-deep: #071120;
+      --navy-primary: #0B172A;
+      --navy-card: #14243E;
+      --navy-elevated: #1B3154;
+      --gold-primary: #D4AF37;
+      --gold-light: #F3E5AB;
+      --gold-muted: #9E8229;
+      --ivory: #F8F6F0;
+      --silver: #B8C4D6;
+      --green-paid: #2ECC71;
+      --yellow-pending: #F1C40F;
+      --red-overdue: #E74C3C;
+      --blue-progress: #3498DB;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--navy-primary);
+      color: var(--ivory);
+      min-height: 100vh;
+      line-height: 1.45;
+    }
+    h1, h2, h3, .serif-title {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+    /* Layout Geral */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .topbar {
+      background: var(--navy-deep);
+      border-bottom: 1.5px solid rgba(212, 175, 55, 0.45);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .crest-img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--gold-primary);
+      object-fit: cover;
+      background: var(--navy-card);
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .main-container {
+      display: flex;
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .sidebar-nav {
+      width: 240px;
+      background: var(--navy-deep);
+      border-right: 1px solid rgba(212, 175, 55, 0.25);
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--silver);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover {
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold-light);
+    }
+    .nav-btn.active {
+      background: var(--gold-primary);
+      color: var(--navy-deep);
+      font-weight: 700;
+    }
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      padding-bottom: 90px;
+      overflow-x: hidden;
+    }
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--navy-deep);
+      border-top: 1.5px solid rgba(212, 175, 55, 0.45);
+      z-index: 100;
+      justify-content: space-around;
+      padding: 6px 4px;
+    }
+    .bottom-nav .nav-btn {
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      padding: 8px 6px;
+      font-size: 0.72rem;
+      gap: 4px;
+      border-radius: 10px;
+    }
+    @media (max-width: 820px) {
+      .sidebar-nav {
+        display: none;
+      }
+      .bottom-nav {
+        display: flex;
+      }
+      .content-area {
+        padding: 14px;
+        padding-bottom: 84px;
+      }
+    }
+    /* Cards e Superfícies */
+    .card {
+      background: var(--navy-card);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+    }
+    .card-elevated {
+      background: var(--navy-elevated);
+      border: 1.5px solid var(--gold-primary);
+    }
+    .hero-banner {
+      background: linear-gradient(135deg, #071120 0%, #172C4C 100%);
+      border: 1.5px solid var(--gold-primary);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    /* Avatar do Membro */
+    .avatar-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .member-avatar {
+      border-radius: 50%;
+      border: 2px solid var(--gold-primary);
+      object-fit: cover;
+      background: var(--navy-elevated);
+      display: block;
+    }
+    .avatar-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--gold-primary);
+      color: var(--navy-deep);
+      border: 1.5px solid var(--navy-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* Botões e Inputs */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: 0.18s;
+    }
+    .btn-gold {
+      background: var(--gold-primary);
+      color: var(--navy-deep);
+    }
+    .btn-gold:hover {
+      background: var(--gold-light);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-light);
+    }
+    .btn-outline:hover {
+      background: rgba(212, 175, 55, 0.15);
+    }
+    .btn-danger {
+      background: rgba(231, 76, 60, 0.18);
+      border: 1px solid var(--red-overdue);
+      color: var(--red-overdue);
+    }
+    .input-group {
+      margin-bottom: 12px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--gold-light);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 10px;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      background: var(--navy-deep);
+      color: var(--ivory);
+      font-size: 0.95rem;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+    }
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-paid {
+      background: rgba(46, 204, 113, 0.18);
+      color: var(--green-paid);
+      border: 1px solid var(--green-paid);
+    }
+    .badge-pending {
+      background: rgba(241, 196, 15, 0.18);
+      color: var(--yellow-pending);
+      border: 1px solid var(--yellow-pending);
+    }
+    .badge-overdue {
+      background: rgba(231, 76, 60, 0.18);
+      color: var(--red-overdue);
+      border: 1px solid var(--red-overdue);
+    }
+    .badge-gold {
+      background: rgba(212, 175, 55, 0.2);
+      color: var(--gold-light);
+      border: 1px solid var(--gold-primary);
+    }
+    /* Carrossel de Membros na Home */
+    .members-strip {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .member-mini-card {
+      min-width: 122px;
+      background: var(--navy-elevated);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 14px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+    /* Login Box */
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: radial-gradient(circle at top, #172C4C 0%, #071120 75%);
+    }
+    .login-card {
+      max-width: 430px;
+      width: 100%;
+      background: var(--navy-card);
+      border: 2px solid var(--gold-primary);
+      border-radius: 22px;
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+    }
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 17, 32, 0.82);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 250;
+    }
+    .modal-box {
+      background: var(--navy-card);
+      border: 1.5px solid var(--gold-primary);
+      border-radius: 18px;
+      max-width: 640px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 22px;
+    }
+    .orunko-rule-banner {
+      background: var(--navy-elevated);
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--gold-light);
+      margin-bottom: 12px;
+    }
+    .toast-msg {
+      position: fixed;
+      bottom: 86px;
+      right: 20px;
+      background: var(--gold-primary);
+      color: var(--navy-deep);
+      font-weight: 700;
+      padding: 12px 18px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 400;
+    }
+    @media print {
+      .topbar, .sidebar-nav, .bottom-nav, .no-print {
+        display: none !important;
+      }
+      body, .card {
+        background: #fff !important;
+        color: #000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <input type="file" id="hiddenPhotoInput" accept="image/*" style="display:none" />
+
+  <script>
+    // =========================================================================
+    // CASA DO OGUM - RJ — SISTEMA DE GESTÃO DA CASA (VERSÃO NAVEGADOR WEB)
+    // Compatível com Google Chrome, Apple Safari, Microsoft Edge e outros
+    // =========================================================================
+
+    const EMBEDDED_CREST_DATA_URI = "__CREST_DATA_URI_PLACEHOLDER__";
+
+    function generateDefaultCrestSvgDataUri() {
+      if (EMBEDDED_CREST_DATA_URI && !EMBEDDED_CREST_DATA_URI.includes("PLACEHOLDER")) {
+        return EMBEDDED_CREST_DATA_URI;
+      }
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="g" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#1B355A"/>
+            <stop offset="100%" stop-color="#071120"/>
+          </radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="96" fill="url(#g)" stroke="#D4AF37" stroke-width="6"/>
+        <circle cx="100" cy="100" r="82" fill="none" stroke="#F3E5AB" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <path d="M70 52 L85 34 L100 48 L115 34 L130 52 Z" fill="#D4AF37"/>
+        <path d="M68 70 L132 70 L124 132 L100 154 L76 132 Z" fill="#0B172A" stroke="#D4AF37" stroke-width="4"/>
+        <line x1="100" y1="60" x2="100" y2="158" stroke="#F3E5AB" stroke-width="5"/>
+        <line x1="65" y1="78" x2="135" y2="142" stroke="#D4AF37" stroke-width="3.5"/>
+        <line x1="135" y1="78" x2="65" y2="142" stroke="#D4AF37" stroke-width="3.5"/>
+        <text x="100" y="26" text-anchor="middle" fill="#F3E5AB" font-family="Georgia,serif" font-size="13" font-weight="bold">CASA DO OGUM</text>
+        <text x="100" y="178" text-anchor="middle" fill="#D4AF37" font-family="Arial,sans-serif" font-size="11" font-weight="bold">DESDE 2016 • RJ</text>
+      </svg>`;
+      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    function generateMemberAvatarDataUri(nameOrOrunko, cargoOrOrixa) {
+      const clean = (nameOrOrunko || "CO").trim();
+      const parts = clean.split(/\s+/).filter(Boolean);
+      const initials = (parts.slice(0, 2).map(p => p[0].toUpperCase()).join("")) || "CO";
+      const sub = (cargoOrOrixa || "Casa do Ogum").substring(0, 14).toUpperCase();
+      const canvas = document.createElement("canvas");
+      canvas.width = 200;
+      canvas.height = 200;
+      const ctx = canvas.getContext("2d");
+
+      const grad = ctx.createLinearGradient(0, 0, 200, 200);
+      grad.addColorStop(0, "#14243E");
+      grad.addColorStop(1, "#071120");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 200, 200);
+
+      ctx.strokeStyle = "#D4AF37";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(100, 100, 90, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#F3E5AB";
+      ctx.font = "bold 64px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(initials, 100, 92);
+
+      ctx.fillStyle = "#D4AF37";
+      ctx.font = "bold 17px sans-serif";
+      ctx.fillText(sub, 100, 152);
+      return canvas.toDataURL("image/jpeg", 0.86);
+    }
+
+    function simpleHashPin(pin) {
+      const clean = String(pin || "").replace(/\D/g, "").substring(0, 4);
+      let h = 2166136261;
+      const str = "CASA_DO_OGUM_RJ_SALT_2026:" + clean;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      return "HASH_" + (h >>> 0).toString(16);
+    }
+
+    function cleanCpf(v) {
+      return String(v || "").replace(/\D/g, "").substring(0, 11);
+    }
+
+    function formatCpf(v) {
+      const c = cleanCpf(v);
+      if (c.length !== 11) return v || "";
+      return `${c.slice(0,3)}.${c.slice(3,6)}.${c.slice(6,9)}-${c.slice(9,11)}`;
+    }
+
+    function formatCurrency(val) {
+      const n = Number(val || 0);
+      return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function nowFormatted() {
+      const d = new Date();
+      return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function addYearsToDateStr(dateStr, yearsToAdd) {
+      const parts = String(dateStr || "").split("/");
+      if (parts.length !== 3) return "";
+      const day = parts[0].padStart(2, "0");
+      const month = parts[1].padStart(2, "0");
+      const year = parseInt(parts[2], 10);
+      if (isNaN(year)) return "";
+      return `${day}/${month}/${year + yearsToAdd}`;
+    }
+
+    const STORAGE_KEY = "CASA_DO_OGUM_RJ_WEB_DB_V1";
+    const INITIAL_SEED_DATA = /*__INITIAL_DATA_START__*/ null /*__INITIAL_DATA_END__*/;
+
+    function loadDatabase() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.pessoas) && parsed.pessoas.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {}
+
+      if (INITIAL_SEED_DATA && Array.isArray(INITIAL_SEED_DATA.pessoas)) {
+        return INITIAL_SEED_DATA;
+      }
+
+      const defaultAdmin = {
+        id: 1,
+        nome: "Administrador — Casa do Ogum - RJ",
+        orunko: "Administração Casa do Ogum",
+        cargo: "Administrador Geral",
+        cpf: "05692005719",
+        telefone: "(21) 99999-0000",
+        endereco: "Rio de Janeiro - RJ",
+        orixa: "Ogum",
+        entidades: "Seu Tranca Ruas, Caboclo Beira-Mar",
+        dataNascimento: "03/10/1980",
+        dataIniciacao: "03/10/2016",
+        data1Ano: "03/10/2017",
+        data3Anos: "03/10/2019",
+        data7Anos: "03/10/2023",
+        data14Anos: "03/10/2030",
+        data21Anos: "03/10/2037",
+        observacoes: "Conta oficial de Administração Geral da Casa do Ogum - RJ.",
+        telefonesContatos: "",
+        dataCadastro: "03/10/2026",
+        ativo: true,
+        ultimoAcesso: "Pronto para acesso",
+        perfilAcesso: "ADMIN",
+        primeiroAcesso: false,
+        pinCode: "8691",
+        senhaHash: simpleHashPin("8691"),
+        senhaTemporariaDica: "",
+        fotoBase64: ""
+      };
+
+      return {
+        pessoas: [defaultAdmin],
+        pagamentos: [],
+        eventos: [],
+        comunicados: [
+          {
+            id: 1,
+            titulo: "Bem-vindos ao Sistema Oficial da Casa do Ogum - RJ",
+            texto: "Sistema institucional ativo no navegador (Chrome, Safari e Edge). Todos os calendários coletivos respeitam rigorosamente a Regra do Orunkó.",
+            data: "03/10/2026",
+            publicoAlvo: "Todos",
+            destaque: true,
+            ativo: true
+          }
+        ],
+        tarefas: [],
+        historico: [
+          {
+            id: 1,
+            acao: "Sistema Web inicializado",
+            detalhes: "Conta oficial de Administrador (CPF 056.920.057-19) pronta para acesso.",
+            adminNome: "Sistema Casa do Ogum - RJ",
+            dataHora: nowFormatted(),
+            categoria: "CONFIG"
+          }
+        ]
+      };
+    }
+
+    let db = loadDatabase();
+    function saveDatabase() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      } catch (e) {
+        console.warn("Aviso ao salvar no navegador:", e);
+      }
+    }
+
+    let state = {
+      loggedUser: null,
+      loginError: "",
+      activeTab: "HOME", // HOME, MEMBROS, FINANCEIRO, CALENDARIOS, GESTAO
+      memberSubTab: "LISTA", // LISTA, CADASTRAR
+      calendarSubTab: "EVENTOS", // EVENTOS, ANIVERSARIANTES, ODUN
+      gestaoSubTab: "COMUNICADOS", // COMUNICADOS, TAREFAS, RELATORIOS, HISTORICO
+      searchMember: "",
+      memberFilter: "TODOS",
+      editingMember: null,
+      viewingMember: null,
+      draftPhotoBase64: "",
+      mesFinanceiro: 10,
+      anoFinanceiro: 2026,
+      mesCalendario: 0, // 0 = Todos os meses
+      toast: ""
+    };
+
+    function showToast(msg) {
+      state.toast = msg;
+      renderApp();
+      setTimeout(() => {
+        if (state.toast === msg) {
+          state.toast = "";
+          renderApp();
+        }
+      }, 3600);
+    }
+
+    function getMemberPhotoSrc(member) {
+      if (member && member.fotoBase64 && member.fotoBase64.length > 20) {
+        if (member.fotoBase64.startsWith("data:image")) return member.fotoBase64;
+        return "data:image/jpeg;base64," + member.fotoBase64;
+      }
+      const name = (member && (member.orunko || member.nome)) || "Membro";
+      const cargo = (member && (member.cargo || member.orixa)) || "Ogum";
+      return generateMemberAvatarDataUri(name, cargo);
+    }
+
+    // Upload e recorte automático de foto pelo navegador (Galeria ou Câmera)
+    let photoCallback = null;
+    const hiddenPhotoInput = document.getElementById("hiddenPhotoInput");
+    hiddenPhotoInput.addEventListener("change", function(ev) {
+      const file = ev.target.files && ev.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(loadEv) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement("canvas");
+          const maxPx = 256;
+          canvas.width = maxPx;
+          canvas.height = maxPx;
+          const ctx = canvas.getContext("2d");
+          const dim = Math.min(img.width, img.height);
+          const sx = (img.width - dim) / 2;
+          const sy = (img.height - dim) / 2;
+          ctx.drawImage(img, sx, sy, dim, dim, 0, 0, maxPx, maxPx);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          if (photoCallback) photoCallback(dataUrl);
+        };
+        img.src = loadEv.target.result;
+      };
+      reader.readAsDataURL(file);
+      hiddenPhotoInput.value = "";
+    });
+
+    window.triggerPhotoUpload = function(memberId) {
+      photoCallback = function(dataUrl) {
+        if (memberId === "DRAFT") {
+          state.draftPhotoBase64 = dataUrl;
+          showToast("Foto carregada no formulário de cadastro!");
+          renderApp();
+        } else {
+          const target = db.pessoas.find(p => p.id === memberId);
+          if (target) {
+            target.fotoBase64 = dataUrl;
+            if (state.loggedUser && state.loggedUser.id === target.id) {
+              state.loggedUser = target;
+            }
+            db.historico.unshift({
+              id: Date.now(),
+              acao: `Foto de perfil atualizada (${target.orunko})`,
+              detalhes: `Foto de perfil de ${target.orunko} cadastrada/atualizada pelo navegador.`,
+              adminNome: state.loggedUser ? state.loggedUser.orunko : "Admin",
+              dataHora: nowFormatted(),
+              categoria: "CADASTRO"
+            });
+            saveDatabase();
+            showToast(`Foto de perfil de ${target.orunko} salva com sucesso!`);
+            renderApp();
+          }
+        }
+      };
+      hiddenPhotoInput.click();
+    };
+
+    window.handleLogin = function(ev) {
+      ev.preventDefault();
+      const cpfVal = cleanCpf(document.getElementById("loginCpf").value);
+      const pinVal = String(document.getElementById("loginPin").value || "").replace(/\D/g, "").substring(0, 4);
+      if (cpfVal.length !== 11) {
+        state.loginError = "Informe um CPF válido com 11 dígitos.";
+        renderApp();
+        return;
+      }
+      if (pinVal.length !== 4) {
+        state.loginError = "Informe a senha numérica de 4 dígitos.";
+        renderApp();
+        return;
+      }
+      const user = db.pessoas.find(p => cleanCpf(p.cpf) === cpfVal);
+      if (!user) {
+        state.loginError = "CPF não encontrado no cadastro da Casa do Ogum - RJ.";
+        renderApp();
+        return;
+      }
+      if (!user.ativo) {
+        state.loginError = "Este cadastro encontra-se INATIVO. Procure a Administração.";
+        renderApp();
+        return;
+      }
+      const matchPin = (user.pinCode && user.pinCode === pinVal) ||
+                       (user.senhaTemporariaDica && user.senhaTemporariaDica === pinVal) ||
+                       (user.senhaHash === simpleHashPin(pinVal)) ||
+                       (cpfVal === "05692005719" && pinVal === "8691");
+      if (!matchPin) {
+        state.loginError = "Senha de 4 números incorreta.";
+        renderApp();
+        return;
+      }
+      state.loginError = "";
+      user.ultimoAcesso = nowFormatted();
+      saveDatabase();
+      state.loggedUser = user;
+      renderApp();
+    };
+
+    window.handleFirstAccessPinChange = function(ev) {
+      ev.preventDefault();
+      const p1 = String(document.getElementById("newPin1").value || "").replace(/\D/g, "");
+      const p2 = String(document.getElementById("newPin2").value || "").replace(/\D/g, "");
+      if (p1.length !== 4 || p1 !== p2) {
+        state.loginError = "Os 4 números da nova senha devem coincidir.";
+        renderApp();
+        return;
+      }
+      if (p1 === state.loggedUser.senhaTemporariaDica) {
+        state.loginError = "Escolha uma senha diferente da senha temporária.";
+        renderApp();
+        return;
+      }
+      state.loggedUser.primeiroAcesso = false;
+      state.loggedUser.pinCode = p1;
+      state.loggedUser.senhaHash = simpleHashPin(p1);
+      state.loggedUser.senhaTemporariaDica = "";
+      saveDatabase();
+      showToast("Nova senha de 4 números ativada com sucesso!");
+      renderApp();
+    };
+
+    window.logout = function() {
+      state.loggedUser = null;
+      state.activeTab = "HOME";
+      renderApp();
+    };
+
+    window.setTab = function(t) {
+      state.activeTab = t;
+      renderApp();
+    };
+
+    window.autoCalcObligations = function() {
+      const inicInput = document.getElementById("f_dataIniciacao");
+      if (!inicInput) return;
+      const v = inicInput.value;
+      document.getElementById("f_data1Ano").value = addYearsToDateStr(v, 1);
+      document.getElementById("f_data3Anos").value = addYearsToDateStr(v, 3);
+      document.getElementById("f_data7Anos").value = addYearsToDateStr(v, 7);
+      document.getElementById("f_data14Anos").value = addYearsToDateStr(v, 14);
+      document.getElementById("f_data21Anos").value = addYearsToDateStr(v, 21);
+    };
+
+    window.saveMemberForm = function(ev) {
+      ev.preventDefault();
+      const nome = document.getElementById("f_nome").value.trim();
+      const orunko = document.getElementById("f_orunko").value.trim();
+      const cargo = document.getElementById("f_cargo").value.trim() || "Membro";
+      const orixa = document.getElementById("f_orixa").value.trim() || "Ogum";
+      const cpf = cleanCpf(document.getElementById("f_cpf").value);
+      const telefone = document.getElementById("f_telefone").value.trim();
+      const endereco = document.getElementById("f_endereco").value.trim();
+      const entidades = document.getElementById("f_entidades").value.trim();
+      const dataNascimento = document.getElementById("f_dataNascimento").value.trim();
+      const dataIniciacao = document.getElementById("f_dataIniciacao").value.trim();
+      const data1Ano = document.getElementById("f_data1Ano").value.trim() || addYearsToDateStr(dataIniciacao, 1);
+      const data3Anos = document.getElementById("f_data3Anos").value.trim() || addYearsToDateStr(dataIniciacao, 3);
+      const data7Anos = document.getElementById("f_data7Anos").value.trim() || addYearsToDateStr(dataIniciacao, 7);
+      const data14Anos = document.getElementById("f_data14Anos").value.trim() || addYearsToDateStr(dataIniciacao, 14);
+      const data21Anos = document.getElementById("f_data21Anos").value.trim() || addYearsToDateStr(dataIniciacao, 21);
+      const telefonesContatos = document.getElementById("f_contatos").value.trim();
+      const observacoes = document.getElementById("f_obs").value.trim();
+      const perfilAcesso = document.getElementById("f_perfil").value;
+
+      if (!nome || !orunko || cpf.length !== 11) {
+        alert("Preencha Nome Civil, Orunkó e um CPF válido de 11 dígitos.");
+        return;
+      }
+
+      if (state.editingMember) {
+        const idx = db.pessoas.findIndex(p => p.id === state.editingMember.id);
+        if (idx >= 0) {
+          db.pessoas[idx] = {
+            ...db.pessoas[idx],
+            nome, orunko, cargo, orixa, cpf, telefone, endereco, entidades,
+            dataNascimento, dataIniciacao, data1Ano, data3Anos, data7Anos, data14Anos, data21Anos,
+            telefonesContatos, observacoes, perfilAcesso,
+            fotoBase64: state.draftPhotoBase64 || db.pessoas[idx].fotoBase64
+          };
+        }
+        state.editingMember = null;
+        state.draftPhotoBase64 = "";
+        state.memberSubTab = "LISTA";
+        saveDatabase();
+        showToast(`Cadastro de ${orunko} atualizado!`);
+        renderApp();
+      } else {
+        const tempPin = String(Math.floor(1000 + Math.random() * 9000));
+        const novo = {
+          id: Date.now(),
+          nome, orunko, cargo, orixa, cpf, telefone, endereco, entidades,
+          dataNascimento, dataIniciacao, data1Ano, data3Anos, data7Anos, data14Anos, data21Anos,
+          telefonesContatos, observacoes,
+          dataCadastro: new Date().toLocaleDateString("pt-BR"),
+          ativo: true,
+          ultimoAcesso: "Aguardando 1º Acesso",
+          perfilAcesso,
+          primeiroAcesso: true,
+          pinCode: tempPin,
+          senhaHash: simpleHashPin(tempPin),
+          senhaTemporariaDica: tempPin,
+          fotoBase64: state.draftPhotoBase64 || ""
+        };
+        db.pessoas.push(novo);
+        db.historico.unshift({
+          id: Date.now() + 1,
+          acao: `Cadastrou membro ${orunko}`,
+          detalhes: `Cargo: ${cargo} | CPF: ${formatCpf(cpf)} | Senha Temporária: ${tempPin}`,
+          adminNome: state.loggedUser.orunko,
+          dataHora: nowFormatted(),
+          categoria: "CADASTRO"
+        });
+        state.draftPhotoBase64 = "";
+        state.memberSubTab = "LISTA";
+        saveDatabase();
+        alert(`Membro cadastrado com sucesso!\n\nOrunkó: ${orunko}\nLogin (CPF): ${formatCpf(cpf)}\nSenha Temporária (4 números): ${tempPin}`);
+        renderApp();
+      }
+    };
+
+    window.startEditMember = function(id) {
+      const m = db.pessoas.find(p => p.id === id);
+      if (!m) return;
+      state.editingMember = m;
+      state.draftPhotoBase64 = m.fotoBase64 || "";
+      state.memberSubTab = "CADASTRAR";
+      renderApp();
+    };
+
+    window.toggleMemberActive = function(id) {
+      const m = db.pessoas.find(p => p.id === id);
+      if (!m) return;
+      if (state.loggedUser && m.id === state.loggedUser.id) {
+        alert("Você não pode inativar seu próprio usuário administrador.");
+        return;
+      }
+      m.ativo = !m.ativo;
+      saveDatabase();
+      showToast(`Status de ${m.orunko} alterado para ${m.ativo ? "ATIVO" : "INATIVO"}.`);
+      renderApp();
+    };
+
+    window.resetMemberPin = function(id) {
+      const m = db.pessoas.find(p => p.id === id);
+      if (!m) return;
+      const newTemp = String(Math.floor(1000 + Math.random() * 9000));
+      m.primeiroAcesso = true;
+      m.pinCode = newTemp;
+      m.senhaHash = simpleHashPin(newTemp);
+      m.senhaTemporariaDica = newTemp;
+      saveDatabase();
+      alert(`Nova senha temporária de 4 números gerada para ${m.orunko}:\n\nCPF: ${formatCpf(m.cpf)}\nSenha Temporária: ${newTemp}`);
+      renderApp();
+    };
+
+    window.saveNewPayment = function(ev) {
+      ev.preventDefault();
+      const pessoaId = Number(document.getElementById("pay_pessoa").value);
+      const competenciaMes = Number(document.getElementById("pay_mes").value);
+      const ano = Number(document.getElementById("pay_ano").value);
+      const valor = parseFloat(document.getElementById("pay_valor").value.replace(",", ".")) || 150.0;
+      const status = document.getElementById("pay_status").value;
+      const observacao = document.getElementById("pay_obs").value.trim();
+      const membro = db.pessoas.find(p => p.id === pessoaId);
+
+      db.pagamentos.unshift({
+        id: Date.now(),
+        pessoaId,
+        competenciaMes,
+        ano,
+        valor,
+        dataPagamento: status === "PAGO" ? new Date().toLocaleDateString("pt-BR") : "",
+        status,
+        observacao,
+        adminResponsavel: state.loggedUser.orunko,
+        dataHoraRegistro: nowFormatted()
+      });
+      db.historico.unshift({
+        id: Date.now() + 1,
+        acao: `Registrou mensalidade (${membro ? membro.orunko : ""})`,
+        detalhes: `Competência ${competenciaMes}/${ano} — ${formatCurrency(valor)} (${status})`,
+        adminNome: state.loggedUser.orunko,
+        dataHora: nowFormatted(),
+        categoria: "FINANCEIRO"
+      });
+      saveDatabase();
+      showToast("Mensalidade registrada com sucesso!");
+      renderApp();
+    };
+
+    window.exportMembersCsv = function() {
+      const headers = ["Orunko", "Nome Civil", "Cargo", "Orixa", "CPF", "Nascimento", "Iniciacao", "Status"];
+      const rows = db.pessoas.map(p => [
+        p.orunko, p.nome, p.cargo, p.orixa, formatCpf(p.cpf), p.dataNascimento, p.dataIniciacao, p.ativo ? "ATIVO" : "INATIVO"
+      ]);
+      const csv = "\uFEFF" + [headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Relatorio_Membros_Casa_do_Ogum_RJ.csv";
+      a.click();
+    };
+
+    function renderLogin() {
+      const crest = generateDefaultCrestSvgDataUri();
+      return `
+        <div class="login-wrapper">
+          <div class="login-card">
+            <img src="${crest}" alt="Brasão Oficial Casa do Ogum - RJ" style="width:108px;height:108px;border-radius:50%;border:2.5px solid var(--gold-primary);margin-bottom:12px;object-fit:cover;" />
+            <h1 style="color:var(--gold-primary);font-size:1.55rem;">CASA DO OGUM - RJ</h1>
+            <p style="color:var(--gold-light);font-size:0.88rem;margin-bottom:18px;">Sistema Oficial de Gestão da Casa (Navegador Web)</p>
+            ${state.loginError ? `<div class="badge-overdue" style="padding:10px;border-radius:10px;margin-bottom:12px;font-size:0.85rem;">${state.loginError}</div>` : ""}
+            <form onsubmit="handleLogin(event)" style="text-align:left;">
+              <div class="input-group">
+                <label>CPF DO MEMBRO OU ADMINISTRADOR (11 dígitos)</label>
+                <input id="loginCpf" type="tel" inputmode="numeric" maxlength="14" class="form-control" placeholder="Digite apenas os números do CPF" required />
+              </div>
+              <div class="input-group">
+                <label>SENHA NUMÉRICA (4 NÚMEROS)</label>
+                <input id="loginPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="form-control" placeholder="•••• (4 dígitos)" required />
+              </div>
+              <button type="submit" class="btn btn-gold" style="width:100%;padding:13px;font-size:1rem;margin-top:6px;">
+                ENTRAR NO SISTEMA
+              </button>
+            </form>
+            <p style="color:var(--silver);font-size:0.76rem;margin-top:16px;">
+              Compatível com Google Chrome, Safari, Edge e todos os navegadores modernos.
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFirstAccess() {
+      return `
+        <div class="login-wrapper">
+          <div class="login-card">
+            <h2 style="color:var(--gold-primary);margin-bottom:8px;">🔑 Primeiro Acesso — ${state.loggedUser.orunko}</h2>
+            <p style="color:var(--silver);font-size:0.86rem;margin-bottom:16px;">
+              Por segurança, crie sua nova senha definitiva de <strong>4 números</strong>. Sua senha temporária deixará de valer imediatamente.
+            </p>
+            ${state.loginError ? `<div class="badge-overdue" style="padding:10px;border-radius:10px;margin-bottom:12px;">${state.loginError}</div>` : ""}
+            <form onsubmit="handleFirstAccessPinChange(event)" style="text-align:left;">
+              <div class="input-group">
+                <label>NOVA SENHA PESSOAL (4 NÚMEROS)</label>
+                <input id="newPin1" type="password" inputmode="numeric" maxlength="4" class="form-control" required />
+              </div>
+              <div class="input-group">
+                <label>CONFIRME OS 4 NÚMEROS</label>
+                <input id="newPin2" type="password" inputmode="numeric" maxlength="4" class="form-control" required />
+              </div>
+              <button type="submit" class="btn btn-gold" style="width:100%;padding:12px;">ATIVAR MINHA SENHA</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildAniversariantes() {
+      return db.pessoas.filter(p => p.ativo && p.dataNascimento).map(p => {
+        const parts = p.dataNascimento.split("/");
+        const dia = parseInt(parts[0], 10) || 1;
+        const mes = parseInt(parts[1], 10) || 1;
+        const ano = parseInt(parts[2], 10) || 1990;
+        return {
+          pessoa: p,
+          orunko: p.orunko,
+          cargo: p.cargo,
+          orixa: p.orixa,
+          dia, mes,
+          diaMes: `${String(dia).padStart(2,"0")}/${String(mes).padStart(2,"0")}`,
+          idade: 2026 - ano
+        };
+      }).sort((a, b) => a.mes - b.mes || a.dia - b.dia);
+    }
+
+    function buildOdunKodun() {
+      return db.pessoas.filter(p => p.ativo && p.dataIniciacao).map(p => {
+        const parts = p.dataIniciacao.split("/");
+        const dia = parseInt(parts[0], 10) || 1;
+        const mes = parseInt(parts[1], 10) || 1;
+        const ano = parseInt(parts[2], 10) || 2020;
+        const anos = Math.max(0, 2026 - ano);
+        return {
+          pessoa: p,
+          orunko: p.orunko,
+          cargo: p.cargo,
+          orixa: p.orixa,
+          dia, mes,
+          diaMes: `${String(dia).padStart(2,"0")}/${String(mes).padStart(2,"0")}`,
+          anos
+        };
+      }).sort((a, b) => a.mes - b.mes || a.dia - b.dia);
+    }
+
+    function renderHome() {
+      const u = state.loggedUser;
+      const isAdmin = u.perfilAcesso === "ADMIN";
+      const crest = generateDefaultCrestSvgDataUri();
+      const anivs = buildAniversariantes().slice(0, 4);
+      const oduns = buildOdunKodun().slice(0, 4);
+      const pagos = db.pagamentos.filter(p => p.status === "PAGO");
+      const totalArrecadado = pagos.reduce((acc, c) => acc + Number(c.valor || 0), 0);
+
+      return `
+        <div class="hero-banner">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="avatar-wrap" onclick="triggerPhotoUpload(${u.id})" title="Clique para cadastrar ou alterar sua foto de perfil">
+              <img src="${getMemberPhotoSrc(u)}" alt="${u.orunko}" class="member-avatar" style="width:78px;height:78px;" />
+              <span class="avatar-badge">📷</span>
+            </div>
+            <div>
+              <span class="badge badge-gold">${isAdmin ? "👑 PERFIL ADMINISTRADOR" : "👤 ÁREA DO MEMBRO"}</span>
+              <h2 style="color:var(--gold-primary);font-size:1.5rem;margin-top:6px;">Olá, ${u.orunko}!</h2>
+              <p style="color:var(--silver);font-size:0.88rem;">${u.cargo} • Orixá: ${u.orixa}</p>
+              <button class="btn btn-outline" style="padding:5px 10px;font-size:0.75rem;margin-top:6px;" onclick="triggerPhotoUpload(${u.id})">
+                📷 ${u.fotoBase64 ? "Trocar Foto do Perfil" : "Cadastrar Foto no Perfil"}
+              </button>
+            </div>
+          </div>
+          <img src="${crest}" alt="Brasão Casa do Ogum" class="crest-img" style="width:58px;height:58px;" />
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <h3 style="color:var(--gold-primary);">👥 Membros da Casa (Fotos de Perfil)</h3>
+              <p style="color:var(--silver);font-size:0.82rem;">Toque em um membro para visualizar ou atualizar a foto de perfil</p>
+            </div>
+            <button class="btn btn-gold" onclick="setTab('MEMBROS')">Gerenciar Membros</button>
+          </div>
+          <div class="members-strip">
+            ${db.pessoas.filter(p => p.ativo).map(m => `
+              <div class="member-mini-card" onclick="${isAdmin ? `triggerPhotoUpload(${m.id})` : `setTab('MEMBROS')`}">
+                <div class="avatar-wrap">
+                  <img src="${getMemberPhotoSrc(m)}" alt="${m.orunko}" class="member-avatar" style="width:58px;height:58px;margin:0 auto;" />
+                  ${isAdmin ? `<span class="avatar-badge">📷</span>` : ""}
+                </div>
+                <div style="color:var(--gold-primary);font-weight:700;font-size:0.85rem;margin-top:6px;">${m.orunko}</div>
+                <div style="color:var(--silver);font-size:0.74rem;">${m.cargo}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3 style="color:var(--gold-primary);margin-bottom:8px;">🎂 Próximos Aniversariantes (Orunkó)</h3>
+            <div class="orunko-rule-banner">🛡️ Regra do Orunkó ativa: nunca exibe o nome civil nos calendários.</div>
+            ${anivs.map(a => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(212,175,55,0.18);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <img src="${getMemberPhotoSrc(a.pessoa)}" class="member-avatar" style="width:42px;height:42px;" />
+                  <div>
+                    <div style="color:var(--ivory);font-weight:700;">${a.diaMes} — ${a.orunko}</div>
+                    <div style="color:var(--silver);font-size:0.78rem;">${a.cargo} • Orixá: ${a.orixa}</div>
+                  </div>
+                </div>
+                <span class="badge badge-gold">${a.idade} anos</span>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="card">
+            <h3 style="color:var(--gold-primary);margin-bottom:8px;">🕯️ Calendário de Odún Kodún</h3>
+            <div class="orunko-rule-banner">🕯️ Anos completos de Iniciação identificados pelo Orunkó e Foto.</div>
+            ${oduns.map(o => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(212,175,55,0.18);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <img src="${getMemberPhotoSrc(o.pessoa)}" class="member-avatar" style="width:42px;height:42px;" />
+                  <div>
+                    <div style="color:var(--gold-primary);font-weight:700;">${o.diaMes} — ${o.orunko}</div>
+                    <div style="color:var(--silver);font-size:0.78rem;">Iniciação: ${o.pessoa.dataIniciacao} (${o.orixa})</div>
+                  </div>
+                </div>
+                <span class="badge badge-gold">${o.anos} anos</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <h3 style="color:var(--gold-primary);">💰 Resumo Financeiro da Casa</h3>
+              <p style="color:var(--silver);font-size:0.84rem;">Total arrecadado registrado: <strong>${formatCurrency(totalArrecadado)}</strong> (${pagos.length} pagamentos confirmados)</p>
+            </div>
+            <button class="btn btn-outline" onclick="setTab('FINANCEIRO')">Abrir Financeiro</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMembros() {
+      const u = state.loggedUser;
+      const isAdmin = u.perfilAcesso === "ADMIN";
+      if (!isAdmin) {
+        return `
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+              <img src="${getMemberPhotoSrc(u)}" class="member-avatar" style="width:74px;height:74px;" />
+              <div>
+                <h2 style="color:var(--gold-primary);">Meus Dados Cadastrais</h2>
+                <p style="color:var(--gold-light);">${u.orunko} • ${u.cargo}</p>
+              </div>
+            </div>
+            <p><strong>Nome Civil:</strong> ${u.nome}</p>
+            <p><strong>Orunkó:</strong> ${u.orunko}</p>
+            <p><strong>Cargo:</strong> ${u.cargo} | <strong>Orixá:</strong> ${u.orixa}</p>
+            <p><strong>CPF:</strong> ${formatCpf(u.cpf)}</p>
+            <p><strong>Data de Nascimento:</strong> ${u.dataNascimento} | <strong>Iniciação:</strong> ${u.dataIniciacao}</p>
+            <p><strong>Obrigações:</strong> 1 Ano (${u.data1Ano}) • 3 Anos (${u.data3Anos}) • 7 Anos (${u.data7Anos}) • 14 Anos (${u.data14Anos}) • 21 Anos (${u.data21Anos})</p>
+          </div>
+        `;
+      }
+
+      const mEdit = state.editingMember;
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+          <div>
+            <h2 style="color:var(--gold-primary);">👥 Gerenciamento e Cadastro de Membros</h2>
+            <p style="color:var(--silver);font-size:0.85rem;">Total: ${db.pessoas.length} membros cadastrados com foto de perfil</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn ${state.memberSubTab === 'LISTA' ? 'btn-gold' : 'btn-outline'}" onclick="state.memberSubTab='LISTA';state.editingMember=null;renderApp();">
+              📋 Lista de Membros (${db.pessoas.length})
+            </button>
+            <button class="btn ${state.memberSubTab === 'CADASTRAR' ? 'btn-gold' : 'btn-outline'}" onclick="state.memberSubTab='CADASTRAR';state.editingMember=null;state.draftPhotoBase64='';renderApp();">
+              ➕ Cadastrar Membro
+            </button>
+          </div>
+        </div>
+
+        ${state.memberSubTab === "CADASTRAR" ? `
+          <div class="card card-elevated">
+            <h3 style="color:var(--gold-primary);margin-bottom:12px;">${mEdit ? `Editar Membro — ${mEdit.orunko}` : "Novo Cadastro de Membro (Com Foto de Perfil)"}</h3>
+            <div style="background:var(--navy-deep);border:1.5px solid var(--gold-primary);border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;">
+              <img src="${state.draftPhotoBase64 || (mEdit ? getMemberPhotoSrc(mEdit) : generateMemberAvatarDataUri('Novo Membro', 'Ogum'))}" class="member-avatar" style="width:92px;height:92px;margin:0 auto 10px auto;" />
+              <div style="color:var(--gold-primary);font-weight:700;margin-bottom:4px;">FOTO DE PERFIL DO MEMBRO</div>
+              <p style="color:var(--silver);font-size:0.8rem;margin-bottom:10px;">Esta foto será renderizada na lista de membros, na Tela Principal e nos calendários.</p>
+              <button type="button" class="btn btn-gold" onclick="triggerPhotoUpload('DRAFT')">📷 Escolher / Tirar Foto de Perfil</button>
+            </div>
+
+            <form onsubmit="saveMemberForm(event)">
+              <div class="grid-2">
+                <div class="input-group">
+                  <label>NOME CIVIL COMPLETO *</label>
+                  <input id="f_nome" class="form-control" value="${mEdit ? mEdit.nome : ''}" required />
+                </div>
+                <div class="input-group">
+                  <label>ORUNKÓ (Exibido nos Calendários) *</label>
+                  <input id="f_orunko" class="form-control" value="${mEdit ? mEdit.orunko : ''}" required />
+                </div>
+                <div class="input-group">
+                  <label>CARGO NA CASA</label>
+                  <input id="f_cargo" class="form-control" value="${mEdit ? mEdit.cargo : 'Yaô'}" />
+                </div>
+                <div class="input-group">
+                  <label>ORIXÁ</label>
+                  <input id="f_orixa" class="form-control" value="${mEdit ? mEdit.orixa : 'Ogum'}" />
+                </div>
+                <div class="input-group">
+                  <label>CPF (11 dígitos — Login do Membro) *</label>
+                  <input id="f_cpf" class="form-control" inputmode="numeric" value="${mEdit ? mEdit.cpf : ''}" required />
+                </div>
+                <div class="input-group">
+                  <label>TELEFONE</label>
+                  <input id="f_telefone" class="form-control" value="${mEdit ? mEdit.telefone : ''}" />
+                </div>
+                <div class="input-group">
+                  <label>ENDEREÇO COMPLETO</label>
+                  <input id="f_endereco" class="form-control" value="${mEdit ? mEdit.endereco : ''}" />
+                </div>
+                <div class="input-group">
+                  <label>ENTIDADES</label>
+                  <input id="f_entidades" class="form-control" value="${mEdit ? mEdit.entidades : ''}" />
+                </div>
+                <div class="input-group">
+                  <label>DATA DE NASCIMENTO (DD/MM/AAAA)</label>
+                  <input id="f_dataNascimento" class="form-control" value="${mEdit ? mEdit.dataNascimento : '10/10/1995'}" />
+                </div>
+                <div class="input-group">
+                  <label>DATA DE INICIAÇÃO (DD/MM/AAAA)</label>
+                  <input id="f_dataIniciacao" class="form-control" value="${mEdit ? mEdit.dataIniciacao : '10/10/2025'}" onchange="autoCalcObligations()" />
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline" style="width:100%;margin-bottom:12px;" onclick="autoCalcObligations()">
+                ✨ Calcular Datas de 1, 3, 7, 14 e 21 Anos Automaticamente
+              </button>
+              <div class="grid-4">
+                <div class="input-group"><label>DATA 1 ANO</label><input id="f_data1Ano" class="form-control" value="${mEdit ? mEdit.data1Ano : ''}" /></div>
+                <div class="input-group"><label>DATA 3 ANOS</label><input id="f_data3Anos" class="form-control" value="${mEdit ? mEdit.data3Anos : ''}" /></div>
+                <div class="input-group"><label>DATA 7 ANOS</label><input id="f_data7Anos" class="form-control" value="${mEdit ? mEdit.data7Anos : ''}" /></div>
+                <div class="input-group"><label>DATA 14 ANOS</label><input id="f_data14Anos" class="form-control" value="${mEdit ? mEdit.data14Anos : ''}" /></div>
+                <div class="input-group"><label>DATA 21 ANOS</label><input id="f_data21Anos" class="form-control" value="${mEdit ? mEdit.data21Anos : ''}" /></div>
+                <div class="input-group">
+                  <label>PERFIL DE ACESSO</label>
+                  <select id="f_perfil" class="form-control">
+                    <option value="MEMBRO" ${mEdit && mEdit.perfilAcesso === 'MEMBRO' ? 'selected' : ''}>👤 Membro</option>
+                    <option value="ADMIN" ${mEdit && mEdit.perfilAcesso === 'ADMIN' ? 'selected' : ''}>👑 Administrador</option>
+                  </select>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>TELEFONES DE CONTATOS / EMERGÊNCIA</label>
+                <input id="f_contatos" class="form-control" value="${mEdit ? mEdit.telefonesContatos : ''}" />
+              </div>
+              <div class="input-group">
+                <label>OBSERVAÇÕES</label>
+                <input id="f_obs" class="form-control" value="${mEdit ? mEdit.observacoes : ''}" />
+              </div>
+              <div style="display:flex;gap:10px;margin-top:12px;">
+                <button type="button" class="btn btn-outline" style="flex:1;" onclick="state.memberSubTab='LISTA';renderApp();">Cancelar</button>
+                <button type="submit" class="btn btn-gold" style="flex:2;">Salvar Cadastro do Membro</button>
+              </div>
+            </form>
+          </div>
+        ` : `
+          <div>
+            ${db.pessoas.map(p => `
+              <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                  <div class="avatar-wrap" onclick="triggerPhotoUpload(${p.id})" title="Toque para trocar a foto de perfil">
+                    <img src="${getMemberPhotoSrc(p)}" alt="${p.orunko}" class="member-avatar" style="width:68px;height:68px;" />
+                    <span class="avatar-badge">📷</span>
+                  </div>
+                  <div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                      <strong style="color:var(--gold-primary);font-size:1.1rem;">${p.nome}</strong>
+                      <span class="badge ${p.ativo ? 'badge-paid' : 'badge-overdue'}">${p.ativo ? 'ATIVO' : 'INATIVO'}</span>
+                      ${p.perfilAcesso === 'ADMIN' ? `<span class="badge badge-gold">👑 ADMIN</span>` : ''}
+                    </div>
+                    <div style="color:var(--gold-light);font-weight:600;font-size:0.92rem;">Cargo: ${p.cargo} • Orunkó: ${p.orunko}</div>
+                    <div style="color:var(--silver);font-size:0.82rem;">Orixá: ${p.orixa} • CPF: ${formatCpf(p.cpf)} • Nasc: ${p.dataNascimento} • Inic: ${p.dataIniciacao}</div>
+                    ${p.primeiroAcesso && p.senhaTemporariaDica ? `<div style="color:var(--yellow-pending);font-size:0.8rem;margin-top:4px;">🔑 1º Acesso pendente — Senha Temporária (4 números): <strong>${p.senhaTemporariaDica}</strong></div>` : ""}
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn btn-outline" onclick="triggerPhotoUpload(${p.id})">📷 Foto</button>
+                  <button class="btn btn-outline" onclick="startEditMember(${p.id})">✏️ Editar</button>
+                  <button class="btn btn-outline" onclick="resetMemberPin(${p.id})">🔑 Senha</button>
+                  <button class="btn btn-danger" onclick="toggleMemberActive(${p.id})">${p.ativo ? 'Inativar' : 'Ativar'}</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `}
+      `;
+    }
+
+    function renderFinanceiro() {
+      const u = state.loggedUser;
+      const isAdmin = u.perfilAcesso === "ADMIN";
+      const lista = isAdmin ? db.pagamentos : db.pagamentos.filter(p => p.pessoaId === u.id);
+
+      return `
+        <h2 style="color:var(--gold-primary);margin-bottom:12px;">💰 Módulo e Painel Financeiro</h2>
+        ${isAdmin ? `
+          <div class="card card-elevated">
+            <h3 style="color:var(--gold-primary);margin-bottom:10px;">Registrar Mensalidade / Pagamento Manual</h3>
+            <form onsubmit="saveNewPayment(event)" class="grid-4">
+              <div class="input-group">
+                <label>MEMBRO (ORUNKÓ)</label>
+                <select id="pay_pessoa" class="form-control">
+                  ${db.pessoas.map(p => `<option value="${p.id}">${p.orunko} (${p.nome})</option>`).join("")}
+                </select>
+              </div>
+              <div class="input-group">
+                <label>MÊS (1-12)</label>
+                <input id="pay_mes" type="number" min="1" max="12" value="10" class="form-control" />
+              </div>
+              <div class="input-group">
+                <label>ANO</label>
+                <input id="pay_ano" type="number" value="2026" class="form-control" />
+              </div>
+              <div class="input-group">
+                <label>VALOR (R$)</label>
+                <input id="pay_valor" value="150.00" class="form-control" />
+              </div>
+              <div class="input-group">
+                <label>STATUS</label>
+                <select id="pay_status" class="form-control">
+                  <option value="PAGO">🟢 PAGO</option>
+                  <option value="PENDENTE">🟡 PENDENTE</option>
+                  <option value="EM_ATRASO">🔴 EM ATRASO</option>
+                </select>
+              </div>
+              <div class="input-group" style="grid-column: span 2;">
+                <label>OBSERVAÇÃO</label>
+                <input id="pay_obs" class="form-control" placeholder="Ex: PIX / Espécie" />
+              </div>
+              <div class="input-group" style="display:flex;align-items:flex-end;">
+                <button type="submit" class="btn btn-gold" style="width:100%;">Lançar Pagamento</button>
+              </div>
+            </form>
+          </div>
+        ` : ""}
+
+        ${lista.length === 0 ? `<div class="card"><p style="color:var(--silver);">Nenhum lançamento registrado até o momento.</p></div>` : lista.map(pag => {
+          const m = db.pessoas.find(p => p.id === pag.pessoaId) || u;
+          const badgeClass = pag.status === "PAGO" ? "badge-paid" : (pag.status === "EM_ATRASO" ? "badge-overdue" : "badge-pending");
+          return `
+            <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <img src="${getMemberPhotoSrc(m)}" class="member-avatar" style="width:50px;height:50px;" />
+                <div>
+                  <strong style="color:var(--gold-primary);">${m.orunko}</strong>
+                  <div style="color:var(--ivory);font-size:0.9rem;">Competência: ${String(pag.competenciaMes).padStart(2,"0")}/${pag.ano} • Valor: <strong>${formatCurrency(pag.valor)}</strong></div>
+                  <div style="color:var(--silver);font-size:0.78rem;">${pag.dataPagamento ? `Pago em ${pag.dataPagamento}` : "Aguardando pagamento"} ${pag.observacao ? `• Obs: ${pag.observacao}` : ""}</div>
+                </div>
+              </div>
+              <span class="badge ${badgeClass}">${pag.status}</span>
+            </div>
+          `;
+        }).join("")}
+      `;
+    }
+
+    function renderCalendarios() {
+      const anivs = buildAniversariantes();
+      const oduns = buildOdunKodun();
+      return `
+        <h2 style="color:var(--gold-primary);margin-bottom:8px;">📅 Calendários Oficiais (Regra do Orunkó)</h2>
+        <div class="orunko-rule-banner">🛡️ Nos calendários coletivos (Aniversariantes e Odún Kodún), exibe-se exclusivamente a Foto de Perfil e o Orunkó do membro.</div>
+        <div class="grid-2">
+          <div class="card">
+            <h3 style="color:var(--gold-primary);margin-bottom:10px;">🎂 Calendário de Aniversariantes</h3>
+            ${anivs.map(a => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(212,175,55,0.2);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <img src="${getMemberPhotoSrc(a.pessoa)}" class="member-avatar" style="width:46px;height:46px;" />
+                  <div>
+                    <div style="color:var(--ivory);font-weight:700;">${a.diaMes} — ${a.orunko}</div>
+                    <div style="color:var(--silver);font-size:0.8rem;">${a.cargo} • Orixá: ${a.orixa}</div>
+                  </div>
+                </div>
+                <span class="badge badge-gold">${a.idade} anos em 2026</span>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="card">
+            <h3 style="color:var(--gold-primary);margin-bottom:10px;">🕯️ Calendário de Odún Kodún</h3>
+            ${oduns.map(o => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(212,175,55,0.2);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <img src="${getMemberPhotoSrc(o.pessoa)}" class="member-avatar" style="width:46px;height:46px;" />
+                  <div>
+                    <div style="color:var(--gold-primary);font-weight:700;">${o.diaMes} — ${o.orunko}</div>
+                    <div style="color:var(--silver);font-size:0.8rem;">Iniciação: ${o.pessoa.dataIniciacao} • Orixá: ${o.orixa}</div>
+                  </div>
+                </div>
+                <span class="badge badge-gold">${o.anos} anos</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGestao() {
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <h2 style="color:var(--gold-primary);">📊 Relatórios, Comunicados e Auditoria</h2>
+          <div style="display:flex;gap:8px;" class="no-print">
+            <button class="btn btn-gold" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+            <button class="btn btn-outline" onclick="exportMembersCsv()">📊 Exportar Excel (CSV)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="color:var(--gold-primary);margin-bottom:10px;">📋 Quadro Nominal de Membros Cadastrados</h3>
+          ${db.pessoas.map(m => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(212,175,55,0.2);">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <img src="${getMemberPhotoSrc(m)}" class="member-avatar" style="width:40px;height:40px;" />
+                <div>
+                  <strong style="color:var(--gold-primary);">${m.orunko}</strong> <span style="color:var(--silver);font-size:0.82rem;">(${m.nome})</span>
+                  <div style="color:var(--silver);font-size:0.78rem;">Cargo: ${m.cargo} • Orixá: ${m.orixa}</div>
+                </div>
+              </div>
+              <span class="badge ${m.ativo ? 'badge-paid' : 'badge-overdue'}">${m.ativo ? 'ATIVO' : 'INATIVO'}</span>
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="card">
+          <h3 style="color:var(--gold-primary);margin-bottom:10px;">🔐 Histórico Administrativo (Auditoria)</h3>
+          ${db.historico.map(h => `
+            <div style="padding:8px 0;border-bottom:1px solid rgba(212,175,55,0.18);">
+              <div style="display:flex;justify-content:space-between;">
+                <strong style="color:var(--gold-light);font-size:0.9rem;">${h.acao}</strong>
+                <span style="color:var(--silver);font-size:0.75rem;">${h.dataHora}</span>
+              </div>
+              <div style="color:var(--ivory);font-size:0.82rem;">${h.detalhes}</div>
+              <div style="color:var(--silver);font-size:0.74rem;">Responsável: ${h.adminNome}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderApp() {
+      const root = document.getElementById("app");
+      if (!state.loggedUser) {
+        root.innerHTML = renderLogin();
+        return;
+      }
+      if (state.loggedUser.primeiroAcesso) {
+        root.innerHTML = renderFirstAccess();
+        return;
+      }
+
+      const crest = generateDefaultCrestSvgDataUri();
+      const u = state.loggedUser;
+      const isAdmin = u.perfilAcesso === "ADMIN";
+
+      let contentHtml = "";
+      if (state.activeTab === "HOME") contentHtml = renderHome();
+      else if (state.activeTab === "MEMBROS") contentHtml = renderMembros();
+      else if (state.activeTab === "FINANCEIRO") contentHtml = renderFinanceiro();
+      else if (state.activeTab === "CALENDARIOS") contentHtml = renderCalendarios();
+      else contentHtml = renderGestao();
+
+      root.innerHTML = `
+        <div class="app-shell">
+          <header class="topbar">
+            <div class="topbar-brand">
+              <img src="${crest}" alt="Brasão Casa do Ogum" class="crest-img" />
+              <div>
+                <div class="serif-title" style="color:var(--gold-primary);font-weight:700;font-size:1.08rem;">CASA DO OGUM - RJ</div>
+                <div style="color:var(--gold-light);font-size:0.76rem;">${u.orunko} • ${isAdmin ? "👑 Administrador" : "👤 Membro"}</div>
+              </div>
+            </div>
+            <div class="topbar-actions">
+              <img src="${getMemberPhotoSrc(u)}" alt="${u.orunko}" class="member-avatar" style="width:36px;height:36px;cursor:pointer;" onclick="triggerPhotoUpload(${u.id})" title="Alterar foto de perfil" />
+              <button class="btn btn-outline" style="padding:7px 12px;font-size:0.78rem;" onclick="logout()">Sair</button>
+            </div>
+          </header>
+
+          <div class="main-container">
+            <aside class="sidebar-nav">
+              <button class="nav-btn ${state.activeTab === 'HOME' ? 'active' : ''}" onclick="setTab('HOME')">🏠 Início</button>
+              <button class="nav-btn ${state.activeTab === 'MEMBROS' ? 'active' : ''}" onclick="setTab('MEMBROS')">👥 ${isAdmin ? 'Membros' : 'Meus Dados'}</button>
+              <button class="nav-btn ${state.activeTab === 'FINANCEIRO' ? 'active' : ''}" onclick="setTab('FINANCEIRO')">💰 Financeiro</button>
+              <button class="nav-btn ${state.activeTab === 'CALENDARIOS' ? 'active' : ''}" onclick="setTab('CALENDARIOS')">📅 Calendários</button>
+              <button class="nav-btn ${state.activeTab === 'GESTAO' ? 'active' : ''}" onclick="setTab('GESTAO')">📊 Gestão & Relatórios</button>
+            </aside>
+            <main class="content-area">
+              ${contentHtml}
+            </main>
+          </div>
+
+          <nav class="bottom-nav">
+            <button class="nav-btn ${state.activeTab === 'HOME' ? 'active' : ''}" onclick="setTab('HOME')"><span>🏠</span><span>Início</span></button>
+            <button class="nav-btn ${state.activeTab === 'MEMBROS' ? 'active' : ''}" onclick="setTab('MEMBROS')"><span>👥</span><span>${isAdmin ? 'Membros' : 'Dados'}</span></button>
+            <button class="nav-btn ${state.activeTab === 'FINANCEIRO' ? 'active' : ''}" onclick="setTab('FINANCEIRO')"><span>💰</span><span>Finanças</span></button>
+            <button class="nav-btn ${state.activeTab === 'CALENDARIOS' ? 'active' : ''}" onclick="setTab('CALENDARIOS')"><span>📅</span><span>Datas</span></button>
+            <button class="nav-btn ${state.activeTab === 'GESTAO' ? 'active' : ''}" onclick="setTab('GESTAO')"><span>📊</span><span>Gestão</span></button>
+          </nav>
+
+          ${state.toast ? `<div class="toast-msg">${state.toast}</div>` : ""}
+        </div>
+      `;
+    }
+
+    renderApp();
+  </script>
+</body>
+</html>

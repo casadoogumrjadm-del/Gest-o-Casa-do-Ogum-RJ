@@ -62,6 +62,7 @@ import com.example.data.AniversarianteItem
 import com.example.data.EventoEntity
 import com.example.data.OdunKodunItem
 import com.example.data.PessoaEntity
+import com.example.ui.components.MemberAvatar
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GoldMuted
 import com.example.ui.theme.GoldPrimary
@@ -77,6 +78,7 @@ import com.example.util.DateAndCalendarUtils
 @Composable
 fun CalendarsAndEventsScreen(
     usuarioLogado: PessoaEntity,
+    pessoas: List<PessoaEntity> = emptyList(),
     eventos: List<EventoEntity>,
     aniversariantes: List<AniversarianteItem>,
     odunKodunList: List<OdunKodunItem>,
@@ -237,11 +239,55 @@ fun CalendarsAndEventsScreen(
                                     style = MaterialTheme.typography.labelMedium,
                                     color = GoldLight
                                 )
-                                Text(
-                                    text = "Responsáveis (Orunkó): ${ev.responsaveis}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = SilverSubtext
-                                )
+                                val respMembros = pessoas.filter { p ->
+                                    ev.responsaveis.contains(p.orunko, ignoreCase = true)
+                                }
+                                if (respMembros.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Responsáveis (Orunkó):",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = GoldLight
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        respMembros.forEach { rm ->
+                                            Surface(
+                                                color = NavyElevated,
+                                                shape = RoundedCornerShape(50),
+                                                modifier = Modifier.border(1.dp, GoldMuted.copy(alpha = 0.4f), RoundedCornerShape(50))
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    MemberAvatar(
+                                                        fotoBase64 = rm.fotoBase64,
+                                                        nameOrOrunko = rm.orunko,
+                                                        size = 24.dp
+                                                    )
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Text(
+                                                        text = rm.orunko,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = GoldPrimary,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                } else {
+                                    Text(
+                                        text = "Responsáveis (Orunkó): ${ev.responsaveis}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = SilverSubtext
+                                    )
+                                }
                                 Text(
                                     text = "Participantes: ${ev.participantes}",
                                     style = MaterialTheme.typography.bodySmall,
@@ -324,6 +370,12 @@ fun CalendarsAndEventsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                        MemberAvatar(
+                                            fotoBase64 = item.fotoBase64,
+                                            nameOrOrunko = item.orunko,
+                                            size = 46.dp
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
                                         Surface(
                                             color = GoldPrimary.copy(alpha = 0.2f),
                                             shape = RoundedCornerShape(10.dp),
@@ -451,6 +503,12 @@ fun CalendarsAndEventsScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.weight(1f)
                                 ) {
+                                    MemberAvatar(
+                                        fotoBase64 = odun.fotoBase64,
+                                        nameOrOrunko = odun.orunko,
+                                        size = 46.dp
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
                                     Surface(
                                         color = GoldPrimary.copy(alpha = 0.22f),
                                         shape = RoundedCornerShape(10.dp),

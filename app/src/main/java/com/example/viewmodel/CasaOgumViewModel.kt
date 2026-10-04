@@ -20,6 +20,7 @@ import com.example.util.DateAndCalendarUtils
 import com.example.util.ExportResult
 import com.example.util.ReportExporter
 import com.example.util.SecurityUtils
+import com.example.util.WebAppExporter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -79,6 +80,10 @@ class CasaOgumViewModel(
         _mensagemFeedback.value = msg
     }
 
+    fun carregarMembrosDoFirestore() {
+        repository.carregarMembrosDoFirestore()
+    }
+
     private val _usuarioLogado = MutableStateFlow<PessoaEntity?>(null)
     val usuarioLogado: StateFlow<PessoaEntity?> = _usuarioLogado.asStateFlow()
 
@@ -93,6 +98,29 @@ class CasaOgumViewModel(
 
     private val _ultimoRelatorioExportado = MutableStateFlow<ExportResult?>(null)
     val ultimoRelatorioExportado: StateFlow<ExportResult?> = _ultimoRelatorioExportado.asStateFlow()
+
+    private val _modoNavegadorWebAtivo = MutableStateFlow(
+        !android.os.Build.FINGERPRINT.contains("robolectric", ignoreCase = true)
+    )
+    val modoNavegadorWebAtivo: StateFlow<Boolean> = _modoNavegadorWebAtivo.asStateFlow()
+
+    fun definirModoNavegadorWeb(ativo: Boolean) {
+        _modoNavegadorWebAtivo.value = ativo
+    }
+
+    fun exportarVersaoWebNavegador(context: Context) {
+        val res = WebAppExporter.exportAndShareWebAppFile(
+            context = context,
+            pessoas = pessoas.value,
+            pagamentos = pagamentos.value,
+            eventos = eventos.value,
+            comunicados = comunicados.value,
+            tarefas = tarefas.value,
+            historico = historico.value
+        )
+        _ultimoRelatorioExportado.value = res
+        _mensagemFeedback.value = res.message
+    }
 
     private val _currentDestination = MutableStateFlow(AppDestination.HOME)
     val currentDestination: StateFlow<AppDestination> = _currentDestination.asStateFlow()
@@ -237,7 +265,8 @@ class CasaOgumViewModel(
         data21Anos: String,
         observacoes: String,
         telefonesContatos: String,
-        perfilAcesso: String
+        perfilAcesso: String,
+        fotoBase64: String = ""
     ) {
         val admin = _usuarioLogado.value ?: return
         val cpfLimpo = SecurityUtils.cleanCpf(cpf)
@@ -285,7 +314,8 @@ class CasaOgumViewModel(
                     perfilAcesso = perfilAcesso,
                     primeiroAcesso = true,
                     senhaHash = SecurityUtils.hashPassword(senhaTemp),
-                    senhaTemporariaDica = senhaTemp
+                    senhaTemporariaDica = senhaTemp,
+                    fotoBase64 = fotoBase64
                 )
                 repository.cadastrarNovaPessoa(novaPessoa, senhaTemp, "${admin.orunko} (Admin)")
                 _credencialGeradaModal.value = Triple(novaPessoa.orunko, SecurityUtils.formatCpf(cpfLimpo), senhaTemp)
@@ -310,7 +340,8 @@ class CasaOgumViewModel(
                     data21Anos = d21,
                     observacoes = observacoes.trim(),
                     telefonesContatos = telefonesContatos.trim(),
-                    perfilAcesso = perfilAcesso
+                    perfilAcesso = perfilAcesso,
+                    fotoBase64 = fotoBase64
                 )
                 val mudancas = buildList {
                     if (anterior.telefone != atualizada.telefone) add("Telefone alterado")
@@ -318,6 +349,7 @@ class CasaOgumViewModel(
                     if (anterior.orunko != atualizada.orunko) add("Orunkó atualizado")
                     if (anterior.endereco != atualizada.endereco) add("Endereço atualizado")
                     if (anterior.perfilAcesso != atualizada.perfilAcesso) add("Perfil: ${atualizada.perfilAcesso}")
+                    if (anterior.fotoBase64 != atualizada.fotoBase64) add("Foto do membro atualizada")
                 }.joinToString(", ").ifEmpty { "Dados cadastrais revisados pelo Administrador." }
 
                 repository.editarPessoa(atualizada, mudancas, "${admin.orunko} (Admin)")
@@ -326,6 +358,23 @@ class CasaOgumViewModel(
                 }
                 _mensagemFeedback.value = "Dados de ${atualizada.orunko} atualizados com sucesso."
             }
+        }
+    }
+
+    fun atualizarFotoMembro(pessoa: PessoaEntity, novaFotoBase64: String) {
+        val autor = _usuarioLogado.value ?: return
+        viewModelScope.launch {
+            val atualizada = pessoa.copy(fotoBase64 = novaFotoBase64)
+            val descricaoAcao = if (novaFotoBase64.isBlank()) {
+                "Foto de perfil de ${pessoa.orunko} removida."
+            } else {
+                "Foto de perfil de ${pessoa.orunko} cadastrada/atualizada."
+            }
+            repository.editarPessoa(atualizada, descricaoAcao, autor.orunko)
+            if (_usuarioLogado.value?.id == atualizada.id) {
+                _usuarioLogado.value = atualizada
+            }
+            _mensagemFeedback.value = "Foto de perfil de ${pessoa.orunko} salva com sucesso!"
         }
     }
 
@@ -524,7 +573,8 @@ class CasaOgumViewModel(
                     mes = parsed.month,
                     diaMesFormatado = "%02d/%02d".format(parsed.day, parsed.month),
                     idadeNoAno = DateAndCalendarUtils.calculateYearsInYear(p.dataNascimento, anoAlvo),
-                    diasAteProximo = DateAndCalendarUtils.daysUntilNextOccurrence(p.dataNascimento)
+                    diasAteProximo = DateAndCalendarUtils.daysUntilNextOccurrence(p.dataNascimento),
+                    fotoBase64 = p.fotoBase64
                 )
             }
             .sortedWith(compareBy<AniversarianteItem> { it.mes }.thenBy { it.dia })
@@ -555,7 +605,8 @@ class CasaOgumViewModel(
                     diaMesFormatado = "%02d/%02d".format(parsed.day, parsed.month),
                     anosCompletos = anos,
                     marcoObrigacao = marco,
-                    diasAteProximo = DateAndCalendarUtils.daysUntilNextOccurrence(p.dataIniciacao)
+                    diasAteProximo = DateAndCalendarUtils.daysUntilNextOccurrence(p.dataIniciacao),
+                    fotoBase64 = p.fotoBase64
                 )
             }
             .sortedWith(compareBy<OdunKodunItem> { it.mes }.thenBy { it.dia })

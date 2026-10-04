@@ -17,7 +17,7 @@ import com.example.util.SecurityUtils
         HistoricoAdminEntity::class,
         ConfiguracaoEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class CasaOgumDatabase : RoomDatabase() {

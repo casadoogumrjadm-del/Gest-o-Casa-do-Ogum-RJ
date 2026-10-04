@@ -168,6 +168,7 @@ class FirestoreSyncService(
             "primeiroAcesso" to pessoa.primeiroAcesso,
             "senhaHash" to pessoa.senhaHash,
             "senhaTemporariaDica" to pessoa.senhaTemporariaDica,
+            "fotoBase64" to pessoa.fotoBase64,
             "updatedAt" to System.currentTimeMillis()
         )
         db.collection(COLLECTION_MEMBROS)
@@ -337,8 +338,35 @@ class FirestoreSyncService(
             perfilAcesso = getString("perfilAcesso") ?: "MEMBRO",
             primeiroAcesso = getBoolean("primeiroAcesso") ?: false,
             senhaHash = getString("senhaHash") ?: "",
-            senhaTemporariaDica = getString("senhaTemporariaDica") ?: ""
+            senhaTemporariaDica = getString("senhaTemporariaDica") ?: "",
+            fotoBase64 = getString("fotoBase64") ?: ""
         )
+    }
+
+    fun carregarMembrosDoFirestore() {
+        val db = firestore ?: return
+        db.collection(COLLECTION_MEMBROS)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                scope.launch {
+                    var count = 0
+                    for (doc in snapshot.documents) {
+                        val pessoa = doc.toPessoaEntity() ?: continue
+                        val existente = dao.getPessoaByCpf(pessoa.cpf)
+                        if (existente == null) {
+                            dao.insertPessoa(pessoa)
+                        } else {
+                            dao.updatePessoa(pessoa.copy(id = existente.id))
+                        }
+                        count++
+                    }
+                    _statusInfo.value = _statusInfo.value.copy(
+                        state = FirestoreConnectionState.CONNECTED,
+                        syncedMembersCount = count,
+                        message = "Lista de membros sincronizada com o Firestore ($count registros)."
+                    )
+                }
+            }
     }
 
     private fun com.google.firebase.firestore.DocumentSnapshot.toPagamentoEntity(): PagamentoEntity? {

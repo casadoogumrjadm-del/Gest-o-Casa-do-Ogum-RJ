@@ -65,6 +65,7 @@ import com.example.data.HistoricoAdminEntity
 import com.example.data.PagamentoEntity
 import com.example.data.PessoaEntity
 import com.example.data.TarefaEntity
+import com.example.ui.components.MemberAvatar
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GoldMuted
 import com.example.ui.theme.GoldPrimary
@@ -312,6 +313,7 @@ fun ManagementAndReportsScreen(
                     }
 
                     items(listaTarefas, key = { it.id }) { tar ->
+                        val respMembro = pessoas.firstOrNull { it.id == tar.responsavelPessoaId }
                         val corPrioridade = when (tar.prioridade) {
                             "Urgente" -> StatusOverdueRed
                             "Alta" -> StatusPendingYellow
@@ -346,18 +348,27 @@ fun ManagementAndReportsScreen(
                                     TaskStatusChip(status = tar.status)
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = tar.descricao,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = IvoryText,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Responsável (Orunkó): ${tar.responsavelOrunko}  •  Prazo: ${tar.prazo}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = GoldLight
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    MemberAvatar(
+                                        fotoBase64 = respMembro?.fotoBase64 ?: "",
+                                        nameOrOrunko = tar.responsavelOrunko,
+                                        size = 42.dp
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = tar.descricao,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = IvoryText,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Responsável (Orunkó): ${tar.responsavelOrunko}  •  Prazo: ${tar.prazo}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = GoldLight
+                                        )
+                                    }
+                                }
                                 if (tar.observacoes.isNotBlank()) {
                                     Text(
                                         text = "Observações: ${tar.observacoes}",
@@ -524,6 +535,38 @@ fun ManagementAndReportsScreen(
                                     ReportStatLine("• $orixa", "$qtd pessoa(s)")
                                 }
 
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = GoldMuted.copy(alpha = 0.3f))
+                                Text("Quadro Nominal de Membros (Foto, Nome e Cargo):", style = MaterialTheme.typography.labelMedium, color = GoldLight)
+                                Spacer(modifier = Modifier.height(6.dp))
+                                pessoas.forEach { m ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        MemberAvatar(
+                                            fotoBase64 = m.fotoBase64,
+                                            nameOrOrunko = m.orunko.ifBlank { m.nome },
+                                            size = 38.dp
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = "${m.orunko} (${m.nome})",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = GoldPrimary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = "Cargo: ${m.cargo} • Orixá: ${m.orixa}",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = SilverSubtext
+                                            )
+                                        }
+                                    }
+                                }
+
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Button(
@@ -608,17 +651,31 @@ fun ManagementAndReportsScreen(
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = log.acao,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = GoldLight,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = log.detalhes,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = IvoryText
-                                )
+                                val autorMembro = pessoas.firstOrNull { p ->
+                                    log.adminNome.contains(p.orunko, ignoreCase = true) ||
+                                        log.detalhes.contains(p.orunko, ignoreCase = true)
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    MemberAvatar(
+                                        fotoBase64 = autorMembro?.fotoBase64 ?: "",
+                                        nameOrOrunko = autorMembro?.orunko ?: log.adminNome,
+                                        size = 36.dp
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            text = log.acao,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = GoldLight,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = log.detalhes,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = IvoryText
+                                        )
+                                    }
+                                }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "Responsável: ${log.adminNome}",
@@ -768,11 +825,52 @@ private fun TarefaFormDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text("Responsável (Orunkó):", style = MaterialTheme.typography.labelMedium, color = GoldLight)
+                responsavelSelecionado?.let { sel ->
+                    Surface(
+                        color = NavyElevated,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, GoldPrimary.copy(alpha = 0.45f), RoundedCornerShape(10.dp))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            MemberAvatar(
+                                fotoBase64 = sel.fotoBase64,
+                                nameOrOrunko = sel.orunko,
+                                size = 38.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = sel.orunko,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = GoldPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "${sel.cargo} • Orixá: ${sel.orixa}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = SilverSubtext
+                                )
+                            }
+                        }
+                    }
+                }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     pessoas.forEach { p ->
                         FilterChip(
                             selected = responsavelSelecionado?.id == p.id,
                             onClick = { responsavelSelecionado = p },
+                            leadingIcon = {
+                                MemberAvatar(
+                                    fotoBase64 = p.fotoBase64,
+                                    nameOrOrunko = p.orunko,
+                                    size = 22.dp
+                                )
+                            },
                             label = { Text(p.orunko) }
                         )
                     }

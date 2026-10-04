@@ -34,7 +34,8 @@ data class PessoaEntity(
     val perfilAcesso: String = "MEMBRO", // "ADMIN" ou "MEMBRO"
     val primeiroAcesso: Boolean = true,
     val senhaHash: String,
-    val senhaTemporariaDica: String = "" // Exibido apenas ao Admin enquanto primeiroAcesso == true
+    val senhaTemporariaDica: String = "", // Exibido apenas ao Admin enquanto primeiroAcesso == true
+    val fotoBase64: String = "" // Foto do membro (armazenada em Base64 no Firestore e banco local)
 )
 
 @Entity(tableName = "pagamentos")
@@ -114,7 +115,8 @@ data class AniversarianteItem(
     val mes: Int,
     val diaMesFormatado: String,
     val idadeNoAno: Int?,
-    val diasAteProximo: Int
+    val diasAteProximo: Int,
+    val fotoBase64: String = ""
 )
 
 data class OdunKodunItem(
@@ -128,7 +130,8 @@ data class OdunKodunItem(
     val diaMesFormatado: String,
     val anosCompletos: Int,
     val marcoObrigacao: String?, // Ex: "Obrigação de 7 Anos", "Obrigação de 14 Anos", etc.
-    val diasAteProximo: Int
+    val diasAteProximo: Int,
+    val fotoBase64: String = ""
 )
 
 data class PainelFinanceiroResumo(

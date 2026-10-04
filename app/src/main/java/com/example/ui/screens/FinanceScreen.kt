@@ -65,6 +65,7 @@ import com.example.R
 import com.example.data.PagamentoEntity
 import com.example.data.PainelFinanceiroResumo
 import com.example.data.PessoaEntity
+import com.example.ui.components.MemberAvatar
 import com.example.ui.theme.GoldLight
 import com.example.ui.theme.GoldMuted
 import com.example.ui.theme.GoldPrimary
@@ -122,12 +123,27 @@ fun FinanceScreen(
         ) {
             item {
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "💰 Minhas Mensalidades e Pagamentos",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = GoldPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    MemberAvatar(
+                        fotoBase64 = usuarioLogado.fotoBase64,
+                        nameOrOrunko = usuarioLogado.orunko,
+                        size = 50.dp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "💰 Minhas Mensalidades",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = GoldPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${usuarioLogado.orunko} • ${usuarioLogado.cargo}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = GoldLight
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 Surface(
                     color = NavyElevated,
@@ -397,18 +413,29 @@ fun FinanceScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = membro?.orunko ?: "Membro #${pag.pessoaId}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = GoldPrimary,
-                                fontWeight = FontWeight.Bold
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            MemberAvatar(
+                                fotoBase64 = membro?.fotoBase64 ?: "",
+                                nameOrOrunko = membro?.orunko ?: "M",
+                                size = 46.dp
                             )
-                            Text(
-                                text = "Nome Civil: ${membro?.nome ?: "-"} • ${membro?.cargo ?: ""}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = SilverSubtext
-                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = membro?.orunko ?: "Membro #${pag.pessoaId}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = GoldPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Nome: ${membro?.nome ?: "-"} • Cargo: ${membro?.cargo ?: ""}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = SilverSubtext
+                                )
+                            }
                         }
                         PaymentStatusBadge(status = pag.status)
                     }
@@ -529,12 +556,54 @@ private fun PagamentoFormDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val membroSelecionado = pessoas.firstOrNull { it.id == pessoaIdSelecionada }
+                if (membroSelecionado != null) {
+                    Surface(
+                        color = NavyElevated,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, GoldPrimary.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            MemberAvatar(
+                                fotoBase64 = membroSelecionado.fotoBase64,
+                                nameOrOrunko = membroSelecionado.orunko,
+                                size = 44.dp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = membroSelecionado.orunko,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = GoldPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "${membroSelecionado.nome} • ${membroSelecionado.cargo}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = SilverSubtext
+                                )
+                            }
+                        }
+                    }
+                }
                 Text("Selecione o Membro (Orunkó):", style = MaterialTheme.typography.labelMedium, color = GoldLight)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     pessoas.forEach { p ->
                         FilterChip(
                             selected = pessoaIdSelecionada == p.id,
                             onClick = { pessoaIdSelecionada = p.id },
+                            leadingIcon = {
+                                MemberAvatar(
+                                    fotoBase64 = p.fotoBase64,
+                                    nameOrOrunko = p.orunko,
+                                    size = 22.dp
+                                )
+                            },
                             label = { Text(p.orunko) }
                         )
                     }
